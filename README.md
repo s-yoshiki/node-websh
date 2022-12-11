@@ -11,7 +11,19 @@ npm install
 ## Getting Started
 
 ```
-node index.js
+npm run dev
+```
+
+## Generate production resources
+
+```
+npm run build
+```
+
+and
+
+```
+npm run serve
 ```
 
 Open your browser http://localhost:8999    

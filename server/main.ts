@@ -8,9 +8,9 @@ import * as nodePty from 'node-pty'
 const app = express();
 const server = new http.Server(app);
 
-let staticDir = 'dist/front'
+let staticDir = 'dist/client'
 if (process.env.NODE_ENV === "development") {
-  staticDir = ".cache/dist/front";
+  staticDir = ".cache/dist/client";
 }
 
 app.use("/", express.static(staticDir));

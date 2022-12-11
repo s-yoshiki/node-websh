@@ -4,15 +4,15 @@ export NODE_ENV=development
 rm -r .cache
 
 # frontend
-cd front 
+cd client 
 vite build
 cd ../
 
 # backend
-esbuild ./server/server.ts \
+esbuild ./server/main.ts \
  --platform=node \
  --minify \
  --format=cjs \
- --outfile=./.cache/dist/server.js
+ --outfile=./.cache/dist/main.js
 
-node ./.cache/dist/server.js
+node ./.cache/dist/main.js

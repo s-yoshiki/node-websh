@@ -7,6 +7,11 @@
     "node-pty": "^0.10.1",
     "ws": "^8.11.0",
     "xterm": "^5.0.0",
-    "xterm-addon-fit": "^0.6.0"
+    "xterm-addon-fit": "^0.6.0",
+    "xterm-addon-ligatures": "^0.6.0",
+    "xterm-addon-search": "^0.10.0",
+    "xterm-addon-serialize": "^0.8.0",
+    "xterm-addon-unicode11": "^0.4.0",
+    "xterm-addon-web-links": "^0.7.0"
   }
 }

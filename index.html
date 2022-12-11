@@ -2,17 +2,29 @@
   <head>
     <meta charset="utf-8">
     <style>
+      html {
+        height: 100%;
+      }
       body {
-        margin: 1em;
+        height: 100%;
+        margin: 0;
+      }
+      .fullheight {
+        height: 100%;
         background: black;
       }
     </style>
     <link rel="stylesheet" href="node_modules/xterm/css/xterm.css" />
     <script type="text/javascript" src="node_modules/xterm/lib/xterm.js" charset="utf-8"></script>
     <script type="text/javascript" src="node_modules/xterm-addon-fit/lib/xterm-addon-fit.js" charset="utf-8"></script>
+    <script type="text/javascript" src="node_modules/xterm-addon-ligatures/lib/xterm-addon-ligatures.js" charset="utf-8"></script>
+    <script type="text/javascript" src="node_modules/xterm-addon-search/lib/xterm-addon-search.js" charset="utf-8"></script>
+    <script type="text/javascript" src="node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js" charset="utf-8"></script>
+    <script type="text/javascript" src="node_modules/xterm-addon-unicode11/lib/xterm-addon-unicode11.js" charset="utf-8"></script>
+    <script type="text/javascript" src="node_modules/xterm-addon-serialize/lib/xterm-addon-serialize.js" charset="utf-8"></script>
   </head>
   <body>
-    <div id="terminal"></div>
+    <div class="fullheight" id="terminal"></div>
     <script type="text/javascript" src="xterm_profile.js" charset="utf-8"></script>
   </body>
 </html>

@@ -1,35 +1,37 @@
-Terminal.applyAddon(fit)
+const fitAddon = new FitAddon.FitAddon();
 const term = new Terminal({
   cols: 80,
-  rows: 24
-})
+  rows: 24,
+});
+term.loadAddon(fitAddon);
 
-const ws = new WebSocket(`ws://${location.hostname}:8999`)
+const ws = new WebSocket(`ws://${location.hostname}:8999`);
 
-ws.addEventListener('open', function() {
-  console.info('WebSocket connected')
-})
-ws.addEventListener('message', function(event) {
-  console.debug('Message from server ', event.data)
+ws.addEventListener("open", function () {
+  console.info("WebSocket connected");
+});
+ws.addEventListener("message", function (event) {
+  console.debug("Message from server ", event.data);
   try {
-    let output = JSON.parse(event.data)
-    term.write(output.output)
+    let output = JSON.parse(event.data);
+    term.write(output.output);
   } catch (e) {
-    console.error(e)
+    console.error(e);
   }
-})
+});
 
-term.open(document.getElementById('terminal'))
+term.open(document.getElementById("terminal"));
 
-term.on('data', data => ws.send(JSON.stringify({ input: data })))
+term.onData((data) => ws.send(JSON.stringify({ input: data })));
 
-window.addEventListener('resize', () => {
-  term.fit()
-})
+window.addEventListener("resize", () => {
+  fitAddon.fit();
+});
 
-term.fit()
-term.on('resize', size => {
-  console.debug('resize')
-  let resizer = JSON.stringify({ resizer: [size.cols, size.rows] })
-  ws.send(resizer)
-})
+fitAddon.fit();
+
+term.onResize((size) => {
+  console.debug("resize");
+  let resizer = JSON.stringify({ resizer: [size.cols, size.rows] });
+  ws.send(resizer);
+});

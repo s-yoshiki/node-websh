@@ -1,19 +1,24 @@
-// const { Terminal } = require("xterm");
-
+import { Terminal } from "xterm";
+import { FitAddon } from "xterm-addon-fit";
+import { SearchAddon } from "xterm-addon-search";
+import { SerializeAddon } from "xterm-addon-serialize";
+import { Unicode11Addon } from "xterm-addon-unicode11";
+import { WebLinksAddon } from "xterm-addon-web-links";
+import "xterm/css/xterm.css"
 const term = new Terminal({
   cols: 80,
   rows: 24,
   allowProposedApi: true,
 });
-term.open(document.getElementById("terminal"));
+term.open(document.getElementById("terminal") as HTMLInputElement);
 
 // addons
-const fitAddon = new FitAddon.FitAddon();
-// const ligaturesAddon = new LigaturesAddon.LigaturesAddon();
-const searchAddon = new SearchAddon.SearchAddon(); 
-const webLinksAddon = new WebLinksAddon.WebLinksAddon(); 
-const unicode11Addon = new Unicode11Addon.Unicode11Addon(); 
-const serializeAddon = new SerializeAddon.SerializeAddon(); 
+const fitAddon = new FitAddon();
+// const ligaturesAddon = new LigaturesAddon();
+const searchAddon = new SearchAddon(); 
+const webLinksAddon = new WebLinksAddon(); 
+const unicode11Addon = new Unicode11Addon(); 
+const serializeAddon = new SerializeAddon(); 
 
 [
   fitAddon,
@@ -24,7 +29,7 @@ const serializeAddon = new SerializeAddon.SerializeAddon();
   serializeAddon,
 ].map((e) => term.loadAddon(e));
 
-term.unicode.activeVersion = '11';
+// term.unicode.activeVersion = '11';
 
 const ws = new WebSocket(`ws://${location.hostname}:8999`);
 
@@ -36,7 +41,7 @@ ws.addEventListener("message", function (event) {
   try {
     let output = JSON.parse(event.data);
     term.write(output.output, () => {
-      console.log(serializeAddon.serialize());
+      // console.log(serializeAddon.serialize());
     });
   } catch (e) {
     console.error(e);

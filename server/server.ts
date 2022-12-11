@@ -1,20 +1,28 @@
-const express = require("express");
-const app = express();
-const server = require("http").Server(app);
-const nodePty = require("node-pty");
-const WebSocket = require("ws");
 
-app.use("/", express.static("."));
+
+import express from 'express';
+import http from 'http';
+import WebSocket from 'ws';
+import * as nodePty from 'node-pty'
+
+const app = express();
+const server = new http.Server(app);
+
+let staticDir = 'dist/front'
+if (process.env.NODE_ENV === "development") {
+  staticDir = ".cache/dist/front";
+}
+
+app.use("/", express.static(staticDir));
 const wss = new WebSocket.Server({ server });
 
 wss.on("connection", (ws) => {
-  // ws.send('Hi there, I am a WebSocket server')
   let pty = nodePty.spawn("bash", ["--login"], {
     name: "xterm-color",
     cols: 80,
     rows: 24,
-    cwd: process.env.HOME,
-    env: process.env,
+    cwd: process.env.HOME as string,
+    // env: process.env,
   });
   pty.onData((data) => {
     // console.log("send: %s", data);
@@ -22,7 +30,7 @@ wss.on("connection", (ws) => {
   });
   ws.on("message", (message) => {
     console.log("received: %s", message);
-    m = JSON.parse(message);
+    const m = JSON.parse(message.toString());
 
     if (m.input) {
       pty.write(m.input);
@@ -33,5 +41,6 @@ wss.on("connection", (ws) => {
 });
 
 server.listen(process.env.PORT || 8999, () => {
-  console.log(`Server started on port ${server.address().port} :)`);
+  console.log(`Server started on ${JSON.stringify(server.address())} :)`);
 });
+

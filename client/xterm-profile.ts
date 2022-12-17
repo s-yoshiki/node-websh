@@ -4,7 +4,7 @@ import { SearchAddon } from "xterm-addon-search";
 import { SerializeAddon } from "xterm-addon-serialize";
 import { Unicode11Addon } from "xterm-addon-unicode11";
 import { WebLinksAddon } from "xterm-addon-web-links";
-import "xterm/css/xterm.css"
+
 const term = new Terminal({
   cols: 80,
   rows: 24,

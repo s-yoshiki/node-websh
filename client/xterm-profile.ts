@@ -15,10 +15,10 @@ term.open(document.getElementById("terminal") as HTMLInputElement);
 // addons
 const fitAddon = new FitAddon();
 // const ligaturesAddon = new LigaturesAddon();
-const searchAddon = new SearchAddon(); 
-const webLinksAddon = new WebLinksAddon(); 
-const unicode11Addon = new Unicode11Addon(); 
-const serializeAddon = new SerializeAddon(); 
+const searchAddon = new SearchAddon();
+const webLinksAddon = new WebLinksAddon();
+const unicode11Addon = new Unicode11Addon();
+const serializeAddon = new SerializeAddon();
 
 [
   fitAddon,
@@ -33,10 +33,10 @@ const serializeAddon = new SerializeAddon();
 
 const ws = new WebSocket(`ws://${location.hostname}:8999`);
 
-ws.addEventListener("open", function () {
+ws.addEventListener("open", () => {
   console.info("WebSocket connected");
 });
-ws.addEventListener("message", function (event) {
+ws.addEventListener("message", (event) => {
   console.debug("Message from server ", event.data);
   try {
     let output = JSON.parse(event.data);
@@ -47,7 +47,6 @@ ws.addEventListener("message", function (event) {
     console.error(e);
   }
 });
-
 
 term.onData((data) => ws.send(JSON.stringify({ input: data })));
 

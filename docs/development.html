@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Development — node-websh</title>
+    <meta
+      name="description"
+      content="Setting up the node-websh monorepo, the dev loop, and the checks CI runs."
+    />
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="site">
+      <aside class="sidebar">
+        <a class="brand" href="index.html">node-websh <span>v0.2</span></a>
+        <nav>
+          <h2>Guide</h2>
+          <ul>
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="development.html" aria-current="page">Development</a></li>
+            <li><a href="deployment.html">Deployment</a></li>
+          </ul>
+          <h2>Reference</h2>
+          <ul>
+            <li><a href="architecture.html">Architecture</a></li>
+            <li><a href="protocol.html">Wire protocol</a></li>
+            <li><a href="security.html">Security</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+          <h2>Project</h2>
+          <ul>
+            <li><a href="https://github.com/s-yoshiki/node-websh">GitHub</a></li>
+            <li><a href="https://github.com/s-yoshiki/majin">majin (Rust)</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="content" id="main">
+        <h1>Development</h1>
+        <p class="lede">A pnpm workspace driven by Turborepo. Node.js 20+ and pnpm 11+.</p>
+
+        <h2>Setup</h2>
+        <pre><code>git clone https://github.com/s-yoshiki/node-websh.git
+cd node-websh
+pnpm install</code></pre>
+        <p>
+          <code>node-pty</code> ships prebuilt binaries for common platforms, so there is normally
+          nothing to compile.
+        </p>
+        <div class="note">
+          <strong>About the postinstall step</strong>
+          <p>
+            node-pty <code>exec</code>s a small <code>spawn-helper</code> binary to start the
+            shell, and the executable bit on it does not survive extraction in every package
+            manager and CI setup. When it is missing, every spawn fails with a bare
+            <code>posix_spawnp failed</code> and no hint that the cause is a file mode.
+            <code>scripts/postinstall.mjs</code> restores it.
+          </p>
+        </div>
+
+        <h2>The dev loop</h2>
+        <pre><code>pnpm dev</code></pre>
+        <p>
+          Two processes: the Hono server on <code>:8999</code> and Vite on <code>:5173</code>. Work
+          against <strong>http://localhost:5173</strong> — Vite proxies <code>/api</code> and
+          <code>/ws</code> to the backend, and the server runs with
+          <code>--allowed-origin http://localhost:5173</code> so the origin check accepts it.
+        </p>
+        <p>
+          The server prints its access token on startup. The printed sign-in link points at
+          <code>:8999</code>; when working through Vite, paste the token into the login form on
+          <code>:5173</code> instead.
+        </p>
+
+        <h3>Against the built output</h3>
+        <pre><code>pnpm build
+pnpm start</code></pre>
+        <p>
+          This exercises the real path: one process on <code>:8999</code> serving both the API and
+          the built frontend, with no Vite in the way.
+        </p>
+
+        <h2>Checks</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Command</th>
+                <th>What it does</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>pnpm lint</code></td>
+                <td>Biome, formatting and lint rules together</td>
+              </tr>
+              <tr>
+                <td><code>pnpm lint:fix</code></td>
+                <td>Applies what Biome can fix automatically</td>
+              </tr>
+              <tr>
+                <td><code>pnpm typecheck</code></td>
+                <td><code>tsc --noEmit</code> per package</td>
+              </tr>
+              <tr>
+                <td><code>pnpm test</code></td>
+                <td>
+                  Unit tests through the Node test runner, including ones that spawn a real PTY and
+                  assert on what the shell sees
+                </td>
+              </tr>
+              <tr>
+                <td><code>pnpm test:e2e</code></td>
+                <td>
+                  Starts the built server and drives sign-in, the origin check, the WebSocket close
+                  codes and a real shell command
+                </td>
+              </tr>
+              <tr>
+                <td><code>pnpm build</code></td>
+                <td>Frontend, then the server bundle that serves it</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Where things live</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>To change…</th>
+                <th>Edit</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>How the terminal looks or behaves</td>
+                <td><code>packages/terminal-ui/src/TerminalView.tsx</code></td>
+              </tr>
+              <tr>
+                <td>The colour scheme</td>
+                <td><code>packages/terminal-ui/src/theme.ts</code></td>
+              </tr>
+              <tr>
+                <td>The wire protocol</td>
+                <td>
+                  <code>packages/protocol/src/messages.ts</code>, and the guards beside it in
+                  <code>codec.ts</code>
+                </td>
+              </tr>
+              <tr>
+                <td>Shell spawning, resizing, the child environment</td>
+                <td><code>apps/server/src/pty.ts</code></td>
+              </tr>
+              <tr>
+                <td>Authentication</td>
+                <td><code>apps/server/src/auth.ts</code></td>
+              </tr>
+              <tr>
+                <td>Routes, headers and CSP</td>
+                <td><code>apps/server/src/main.ts</code></td>
+              </tr>
+              <tr>
+                <td>WebSocket handling</td>
+                <td><code>apps/server/src/ws.ts</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Shared configuration</h2>
+        <p>
+          TypeScript and Biome settings live in <code>configs/</code> as workspace packages rather
+          than being copied per app.
+        </p>
+        <pre><code>configs/tsconfig/base.json        strict defaults, no DOM
+configs/tsconfig/node.json        + Node types
+configs/tsconfig/react-lib.json   + DOM and JSX
+configs/tsconfig/react-app.json   + Vite client types
+configs/biome/base.json           formatter and lint rules</code></pre>
+        <p>A package opts in by extending it:</p>
+        <pre><code>{ "extends": "@node-websh/tsconfig/react-app.json", "include": ["src"] }</code></pre>
+
+        <div class="note">
+          <strong>Two things to know</strong>
+          <p>
+            The shared Biome config is <code>base.json</code>, not <code>biome.json</code>, on
+            purpose: Biome auto-discovers any file with the latter name and would treat the shared
+            one as a competing root configuration.
+          </p>
+          <p>
+            Relative imports carry explicit <code>.ts</code> extensions. That is what lets the Node
+            test runner execute the TypeScript sources directly, without a build step or a loader.
+          </p>
+        </div>
+
+        <footer class="page-footer">
+          <span>node-websh — MIT licensed</span>
+          <a href="https://github.com/s-yoshiki/node-websh">github.com/s-yoshiki/node-websh</a>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

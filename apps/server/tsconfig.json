@@ -1,0 +1,4 @@
+{
+  "extends": "@node-websh/tsconfig/node.json",
+  "include": ["src", "scripts"]
+}

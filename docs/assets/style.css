@@ -1,0 +1,412 @@
+/* node-websh documentation — hand-written, no build step. */
+
+:root {
+  --bg: #ffffff;
+  --bg-raised: #f6f7f9;
+  --bg-code: #f2f3f6;
+  --border: #e2e5ea;
+  --fg: #1c2027;
+  --fg-muted: #5c6572;
+  --accent: #2e5fd0;
+  --accent-soft: #e8eefc;
+  --warn-bg: #fff6e6;
+  --warn-border: #e8b45a;
+  --danger-bg: #fdecef;
+  --danger-border: #e05a72;
+  --radius: 10px;
+  --measure: 74ch;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1218;
+    --bg-raised: #161a22;
+    --bg-code: #12161d;
+    --border: #262c38;
+    --fg: #d9dde4;
+    --fg-muted: #8d96a8;
+    --accent: #7aa2f7;
+    --accent-soft: #1b2436;
+    --warn-bg: #2a2216;
+    --warn-border: #a37a2c;
+    --danger-bg: #2b1a1e;
+    --danger-border: #a2455a;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Base typography -------------------------------------------------------
+   Element selectors come before the component blocks below, so nothing here
+   unexpectedly overrides a more specific rule that appeared earlier. */
+
+h1 {
+  font-size: 1.95rem;
+  line-height: 1.25;
+  margin: 0 0 8px;
+  letter-spacing: -0.015em;
+}
+
+h2 {
+  font-size: 1.3rem;
+  margin: 44px 0 12px;
+  padding-top: 8px;
+  letter-spacing: -0.01em;
+  border-top: 1px solid var(--border);
+}
+
+h3 {
+  font-size: 1.02rem;
+  margin: 28px 0 8px;
+}
+
+p,
+ul,
+ol {
+  margin: 0 0 16px;
+}
+
+li {
+  margin-bottom: 4px;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 2px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 40px 0;
+}
+
+.lede {
+  font-size: 1.05rem;
+  color: var(--fg-muted);
+  margin: 0 0 32px;
+}
+
+/* --- Layout --------------------------------------------------------------- */
+
+.site {
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
+  gap: 48px;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 24px;
+  align-items: start;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  padding: 32px 0;
+  max-height: 100vh;
+  overflow-y: auto;
+}
+
+.content {
+  padding: 32px 0 96px;
+  min-width: 0;
+  max-width: var(--measure);
+}
+
+@media (max-width: 860px) {
+  .site {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .sidebar {
+    position: static;
+    max-height: none;
+    padding: 24px 0 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .content {
+    padding-top: 24px;
+  }
+}
+
+/* --- Sidebar -------------------------------------------------------------- */
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-decoration: none;
+  color: var(--fg);
+  margin-bottom: 4px;
+}
+
+.brand span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--fg-muted);
+}
+
+.sidebar nav {
+  margin-top: 20px;
+}
+
+.sidebar h2 {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-muted);
+  margin: 20px 0 6px;
+  font-weight: 600;
+}
+
+.sidebar ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar li a {
+  display: block;
+  padding: 4px 10px;
+  margin-left: -10px;
+  border-radius: 6px;
+  color: var(--fg-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.sidebar li a:hover {
+  background: var(--bg-raised);
+  color: var(--fg);
+}
+
+.sidebar li a[aria-current="page"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* --- Code ----------------------------------------------------------------- */
+
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.86em;
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+
+pre {
+  background: var(--bg-code);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  overflow-x: auto;
+  margin: 0 0 20px;
+  line-height: 1.55;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.83rem;
+}
+
+/* --- Tables --------------------------------------------------------------- */
+
+.table-wrap {
+  overflow-x: auto;
+  margin: 0 0 20px;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--bg-raised);
+  font-weight: 600;
+}
+
+td code {
+  white-space: nowrap;
+}
+
+/* --- Callouts ------------------------------------------------------------- */
+
+.note,
+.warn,
+.danger {
+  border: 1px solid var(--border);
+  border-left-width: 4px;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin: 0 0 20px;
+  background: var(--bg-raised);
+}
+
+.note {
+  border-left-color: var(--accent);
+}
+
+.warn {
+  background: var(--warn-bg);
+  border-left-color: var(--warn-border);
+}
+
+.danger {
+  background: var(--danger-bg);
+  border-left-color: var(--danger-border);
+}
+
+.note p:last-child,
+.warn p:last-child,
+.danger p:last-child {
+  margin-bottom: 0;
+}
+
+.note strong,
+.warn strong,
+.danger strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+/* --- Cards ---------------------------------------------------------------- */
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  margin: 0 0 24px;
+}
+
+.card {
+  display: block;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  text-decoration: none;
+  color: inherit;
+  background: var(--bg-raised);
+}
+
+.card:hover {
+  border-color: var(--accent);
+}
+
+.card strong {
+  display: block;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.card span {
+  font-size: 0.87rem;
+  color: var(--fg-muted);
+}
+
+/* --- Diagram -------------------------------------------------------------- */
+
+figure {
+  margin: 0 0 24px;
+}
+
+figure svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+figcaption {
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  margin-top: 8px;
+}
+
+.diagram-bg {
+  fill: var(--bg-raised);
+  stroke: var(--border);
+}
+
+.diagram-accent {
+  fill: var(--accent-soft);
+  stroke: var(--accent);
+}
+
+.diagram-text {
+  fill: var(--fg);
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+}
+
+.diagram-muted {
+  fill: var(--fg-muted);
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+}
+
+.diagram-line {
+  stroke: var(--fg-muted);
+  fill: none;
+}
+
+/* --- Footer --------------------------------------------------------------- */
+
+.page-footer {
+  margin-top: 56px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--fg-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: space-between;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+
+.skip-link:focus {
+  left: 12px;
+  top: 12px;
+  z-index: 10;
+  background: var(--bg);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 8px 12px;
+}

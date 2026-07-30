@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>node-websh — a terminal in your browser</title>
+    <meta
+      name="description"
+      content="node-websh runs a real login shell on a pseudo terminal and renders it in the browser with xterm.js, built on Hono, node-pty and React."
+    />
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="site">
+      <aside class="sidebar">
+        <a class="brand" href="index.html">node-websh <span>v0.2</span></a>
+        <nav>
+          <h2>Guide</h2>
+          <ul>
+            <li><a href="index.html" aria-current="page">Overview</a></li>
+            <li><a href="development.html">Development</a></li>
+            <li><a href="deployment.html">Deployment</a></li>
+          </ul>
+          <h2>Reference</h2>
+          <ul>
+            <li><a href="architecture.html">Architecture</a></li>
+            <li><a href="protocol.html">Wire protocol</a></li>
+            <li><a href="security.html">Security</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+          <h2>Project</h2>
+          <ul>
+            <li><a href="https://github.com/s-yoshiki/node-websh">GitHub</a></li>
+            <li><a href="https://github.com/s-yoshiki/majin">majin (Rust)</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="content" id="main">
+        <h1>node-websh</h1>
+        <p class="lede">
+          A real login shell on a pseudo terminal, rendered in the browser with xterm.js.
+          TypeScript end to end: Hono and node-pty on the server, React on the front.
+        </p>
+
+        <div class="danger">
+          <strong>This hands out a shell</strong>
+          <p>
+            It binds to <code>127.0.0.1</code> by default. Work through
+            <a href="security.html">Security</a> before it is reachable from anywhere else.
+          </p>
+        </div>
+
+        <h2>What it is</h2>
+        <p>
+          node-websh spawns your login shell on a PTY and streams it to a browser. Everything a
+          terminal needs is handled end to end: window resizes reach the shell as
+          <code>SIGWINCH</code>, multi-byte output survives being split across reads, the child is
+          killed when the connection goes away, and the child gets a UTF-8 locale so typing
+          non-ASCII actually works.
+        </p>
+
+        <h2>Quick start</h2>
+        <pre><code>git clone https://github.com/s-yoshiki/node-websh.git
+cd node-websh
+pnpm install
+pnpm dev</code></pre>
+        <p>
+          Open <strong>http://localhost:5173</strong>. The server prints an access token on
+          startup, along with a link that signs you in without copying anything by hand.
+        </p>
+        <pre><code>  node-websh 0.2.0 — terminal over the web
+
+  Open:  http://127.0.0.1:8999/#token=1f3c…
+
+  Token: 1f3c…</code></pre>
+        <p>See <a href="development.html">Development</a> for the full workflow.</p>
+
+        <h2>Running a build</h2>
+        <pre><code>pnpm build
+pnpm start</code></pre>
+        <p>
+          <code>pnpm build</code> produces <code>apps/server/dist/</code>: the bundled server, the
+          built frontend beside it, and a <code>package.json</code> whose only dependency is
+          <code>node-pty</code>. Copy that directory anywhere, run
+          <code>npm install --omit=dev</code>, and start it. See
+          <a href="deployment.html">Deployment</a>.
+        </p>
+
+        <h2>Why the rewrite</h2>
+        <p>
+          The original version was an Express server, a bare xterm.js page and two shell scripts.
+          It worked, but the two halves of the protocol were written independently — the browser
+          sent <code>{ resizer: [...] }</code> while the server read <code>msg.resize</code>, so
+          resizing silently did nothing and nothing caught it.
+        </p>
+        <p>
+          Now the protocol is declared once in <code>packages/protocol</code> and imported by both
+          ends, so a rename on one side is a compile error on the other. The rest follows from
+          that: a pnpm and Turborepo monorepo, a React frontend sharing one terminal component,
+          Biome for formatting and linting, and a security model built around a token, an
+          in-memory session and an explicit origin check.
+        </p>
+
+        <h2>Requirements</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>To…</th>
+                <th>You need</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Run or build it</td>
+                <td>Node.js 20+ and pnpm 11+</td>
+              </tr>
+              <tr>
+                <td>Run a built bundle elsewhere</td>
+                <td>
+                  Node.js 20+ and <code>npm install --omit=dev</code> for the native PTY addon,
+                  which ships prebuilt for common platforms
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>A Rust sibling</h2>
+        <p>
+          <a href="https://github.com/s-yoshiki/majin">majin</a> is the same idea built on a Rust
+          core. It ships as a single self-contained binary with the UI compiled in, plus a Tauri
+          desktop app. Same wire protocol, same terminal behaviour, no Node runtime.
+        </p>
+
+        <footer class="page-footer">
+          <span>node-websh — MIT licensed</span>
+          <a href="https://github.com/s-yoshiki/node-websh">github.com/s-yoshiki/node-websh</a>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

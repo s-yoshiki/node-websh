@@ -1,0 +1,14 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+  - 'configs/*'
+
+minimumReleaseAgeExclude:
+  - '@vitejs/plugin-react@6.0.5'
+  - vite@8.2.0
+
+# node-pty compiles a native addon and esbuild ships a platform binary, so both
+# need their install scripts to run. pnpm requires that to be explicit.
+allowBuilds:
+  esbuild: true
+  node-pty: true

@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Deployment — node-websh</title>
+    <meta
+      name="description"
+      content="Deploying node-websh: the build output, systemd, a reverse proxy with TLS and WebSocket support, and Docker."
+    />
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="site">
+      <aside class="sidebar">
+        <a class="brand" href="index.html">node-websh <span>v0.2</span></a>
+        <nav>
+          <h2>Guide</h2>
+          <ul>
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="development.html">Development</a></li>
+            <li><a href="deployment.html" aria-current="page">Deployment</a></li>
+          </ul>
+          <h2>Reference</h2>
+          <ul>
+            <li><a href="architecture.html">Architecture</a></li>
+            <li><a href="protocol.html">Wire protocol</a></li>
+            <li><a href="security.html">Security</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+          <h2>Project</h2>
+          <ul>
+            <li><a href="https://github.com/s-yoshiki/node-websh">GitHub</a></li>
+            <li><a href="https://github.com/s-yoshiki/majin">majin (Rust)</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="content" id="main">
+        <h1>Deployment</h1>
+        <p class="lede">One Node process serving both the API and the frontend.</p>
+
+        <div class="danger">
+          <strong>Read this first</strong>
+          <p>
+            You are deploying remote shell access. Work through
+            <a href="security.html">Security</a> before it is reachable from anywhere but loopback.
+          </p>
+        </div>
+
+        <h2>The build output</h2>
+        <pre><code>pnpm install
+pnpm build</code></pre>
+        <p><code>apps/server/dist/</code> then contains everything needed to run:</p>
+        <pre><code>dist/
+├── main.js          the bundled server
+├── main.js.map
+├── package.json     one dependency: node-pty
+└── public/          the built frontend</code></pre>
+        <p>Copy that directory to the host and install the one native dependency:</p>
+        <pre><code>scp -r apps/server/dist websh.example.com:/opt/node-websh
+ssh websh.example.com 'cd /opt/node-websh &amp;&amp; npm install --omit=dev'</code></pre>
+        <p>
+          <code>node-pty</code> ships prebuilt binaries for common platforms, so this normally
+          downloads rather than compiles. If it does have to build, the host needs a C++ toolchain
+          and Python.
+        </p>
+
+        <h2>Running it as a service</h2>
+        <p>
+          A dedicated unprivileged user, a fixed token, and loopback only — with TLS terminated by
+          a proxy in front.
+        </p>
+        <pre><code>sudo useradd --system --create-home --shell /bin/bash websh
+sudo install -d -o websh -g websh /etc/websh
+printf 'WEBSH_TOKEN=%s\n' "$(openssl rand -hex 24)" | sudo tee /etc/websh/env &gt;/dev/null
+sudo chmod 600 /etc/websh/env
+sudo chown websh:websh /etc/websh/env</code></pre>
+
+        <p><code>/etc/systemd/system/websh.service</code>:</p>
+        <pre><code>[Unit]
+Description=node-websh terminal server
+After=network.target
+
+[Service]
+User=websh
+WorkingDirectory=/opt/node-websh
+EnvironmentFile=/etc/websh/env
+Environment=WEBSH_HOST=127.0.0.1
+Environment=WEBSH_PORT=8999
+Environment=WEBSH_SECURE_COOKIE=1
+ExecStart=/usr/bin/node /opt/node-websh/main.js
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+
+        <pre><code>sudo systemctl daemon-reload
+sudo systemctl enable --now websh
+sudo systemctl status websh</code></pre>
+
+        <div class="note">
+          <strong>Restarts end sessions</strong>
+          <p>
+            Sessions are held in memory, so everyone signs in again after a restart. Shells are
+            killed too — they are children of the server process.
+          </p>
+        </div>
+
+        <div class="warn">
+          <strong>Locale</strong>
+          <p>
+            systemd units start with no <code>LANG</code> or <code>LC_*</code>. The server sets a
+            UTF-8 locale on the child itself, so this is handled — but if you override
+            <code>LC_CTYPE</code> to something non-UTF-8 in the unit file, typing non-ASCII in the
+            terminal will break.
+          </p>
+        </div>
+
+        <h2>Reverse proxy</h2>
+        <p>
+          The proxy must forward WebSocket upgrades and pass <code>X-Forwarded-Proto</code>, which
+          is how the server decides to mark the session cookie <code>Secure</code>.
+        </p>
+
+        <h3>Caddy</h3>
+        <pre><code>websh.example.com {
+    reverse_proxy 127.0.0.1:8999
+}</code></pre>
+        <p>Caddy handles certificates, upgrades and forwarded headers with no further configuration.</p>
+
+        <h3>nginx</h3>
+        <pre><code>server {
+    listen 443 ssl http2;
+    server_name websh.example.com;
+
+    ssl_certificate     /etc/letsencrypt/live/websh.example.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/websh.example.com/privkey.pem;
+
+    location / {
+        proxy_pass http://127.0.0.1:8999;
+        proxy_http_version 1.1;
+
+        # Without these two the WebSocket upgrade fails and the terminal
+        # never connects.
+        proxy_set_header Upgrade    $http_upgrade;
+        proxy_set_header Connection "upgrade";
+
+        proxy_set_header Host              $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Forwarded-For   $remote_addr;
+
+        # A terminal can idle for a long time between keystrokes.
+        proxy_read_timeout 3600s;
+        proxy_send_timeout 3600s;
+    }
+}</code></pre>
+
+        <div class="warn">
+          <strong>Keep the Host header intact</strong>
+          <p>
+            The origin check compares the request's <code>Origin</code> against its
+            <code>Host</code>. A proxy that rewrites <code>Host</code> to
+            <code>127.0.0.1:8999</code> will make every browser connection look cross-origin and
+            get closed with 4001. Either preserve <code>Host</code>, or list the public origin in
+            <code>WEBSH_ALLOWED_ORIGINS</code>.
+          </p>
+        </div>
+
+        <h2>Docker</h2>
+        <pre><code>FROM node:22-bookworm-slim AS build
+WORKDIR /src
+RUN corepack enable
+COPY . .
+RUN pnpm install --frozen-lockfile &amp;&amp; pnpm build
+
+FROM node:22-bookworm-slim
+RUN useradd --create-home --shell /bin/bash websh
+WORKDIR /app
+COPY --from=build /src/apps/server/dist ./
+RUN npm install --omit=dev &amp;&amp; chown -R websh:websh /app
+
+USER websh
+ENV WEBSH_HOST=0.0.0.0 WEBSH_PORT=8999 WEBSH_SHELL=/bin/bash
+EXPOSE 8999
+CMD ["node", "main.js"]</code></pre>
+        <pre><code>docker run --rm -p 8999:8999 -e WEBSH_TOKEN="$(openssl rand -hex 24)" node-websh</code></pre>
+        <p>
+          <code>WEBSH_HOST=0.0.0.0</code> is correct inside a container — the container boundary is
+          what limits reachability. Publish the port only where you intend it to be reachable.
+        </p>
+
+        <h2>Checking it works</h2>
+        <pre><code>curl -s https://websh.example.com/api/info</code></pre>
+        <pre><code>{"version":"0.2.0","protocolVersion":1,"authRequired":true}</code></pre>
+        <p>
+          <code>authRequired: false</code> here means the server is running with
+          <code>--insecure-no-auth</code> and anyone who can reach it has a shell.
+        </p>
+
+        <h2>When something is wrong</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Symptom</th>
+                <th>Likely cause</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Login works, terminal stays "Reconnecting…"</td>
+                <td>The proxy is not forwarding the WebSocket upgrade.</td>
+              </tr>
+              <tr>
+                <td>Immediately bounced back to the login screen</td>
+                <td>
+                  Origin check failing (rewritten <code>Host</code>), or a <code>Secure</code>
+                  cookie set on a connection the browser sees as plain HTTP.
+                </td>
+              </tr>
+              <tr>
+                <td><code>posix_spawnp failed</code> on every connection</td>
+                <td>
+                  node-pty's <code>spawn-helper</code> lost its executable bit. Re-run
+                  <code>node scripts/postinstall.mjs</code>, or
+                  <code>chmod +x</code> it under <code>node_modules</code>.
+                </td>
+              </tr>
+              <tr>
+                <td>Connection drops after a few minutes idle</td>
+                <td>Proxy read timeout too low.</td>
+              </tr>
+              <tr>
+                <td>The page loads but shows no terminal</td>
+                <td>
+                  The frontend was not built, or <code>public/</code> was not copied next to
+                  <code>main.js</code>. The startup banner says so.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <footer class="page-footer">
+          <span>node-websh — MIT licensed</span>
+          <a href="https://github.com/s-yoshiki/node-websh">github.com/s-yoshiki/node-websh</a>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

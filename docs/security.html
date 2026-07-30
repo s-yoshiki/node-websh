@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security — node-websh</title>
+    <meta
+      name="description"
+      content="How node-websh authenticates, what it deliberately does not do, and what you must add yourself before exposing it."
+    />
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="site">
+      <aside class="sidebar">
+        <a class="brand" href="index.html">node-websh <span>v0.2</span></a>
+        <nav>
+          <h2>Guide</h2>
+          <ul>
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="development.html">Development</a></li>
+            <li><a href="deployment.html">Deployment</a></li>
+          </ul>
+          <h2>Reference</h2>
+          <ul>
+            <li><a href="architecture.html">Architecture</a></li>
+            <li><a href="protocol.html">Wire protocol</a></li>
+            <li><a href="security.html" aria-current="page">Security</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+          <h2>Project</h2>
+          <ul>
+            <li><a href="https://github.com/s-yoshiki/node-websh">GitHub</a></li>
+            <li><a href="https://github.com/s-yoshiki/majin">majin (Rust)</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="content" id="main">
+        <h1>Security</h1>
+        <p class="lede">
+          This program hands out an interactive shell. Anyone who reaches it and authenticates
+          can do anything the account running it can do.
+        </p>
+
+        <div class="danger">
+          <strong>Start here</strong>
+          <p>
+            <code>node-websh</code> binds to <code>127.0.0.1</code> by default, and that default
+            exists for a reason. Reaching it from another machine should be a deliberate decision
+            with TLS in front of it, not something that happens because you copied a
+            <code>--host 0.0.0.0</code> from somewhere.
+          </p>
+        </div>
+
+        <h2>How sign-in works</h2>
+        <ol>
+          <li>
+            At startup the server takes the token from <code>WEBSH_TOKEN</code>, or generates a
+            192-bit random one and prints it.
+          </li>
+          <li>
+            The client posts the token to <code>POST /api/auth/session</code>. The server compares
+            SHA-256 digests with a constant-time comparison, so the check leaks neither the token
+            nor its length.
+          </li>
+          <li>
+            On success the server mints a 256-bit random session id, keeps it in memory, and
+            returns it as an <code>HttpOnly; SameSite=Strict</code> cookie.
+          </li>
+          <li>
+            The WebSocket upgrade is authenticated by that cookie, which the browser attaches
+            automatically.
+          </li>
+        </ol>
+
+        <h3>Why sessions live in memory</h3>
+        <p>
+          There is no signing key to manage or leak, sessions can be revoked the instant someone
+          signs out, and a restart invalidates everything. For a process that hands out shells,
+          losing sessions on restart is the correct trade.
+        </p>
+
+        <h3>Why the token is never in the URL query</h3>
+        <p>
+          Query strings end up in proxy logs, server access logs, browser history and
+          <code>Referer</code> headers. A token that grants shell access does not belong in any of
+          them, so the server never accepts one there.
+        </p>
+        <p>
+          The startup banner instead prints a <code>#token=…</code> <em>fragment</em> link.
+          Fragments are never sent to a server, so they cannot reach a log. The page reads it,
+          exchanges it for a cookie, and clears it from the address bar with
+          <code>history.replaceState</code> before anything else happens.
+        </p>
+        <div class="note">
+          <strong>The remaining trade-off</strong>
+          <p>
+            A fragment is still visible in the address bar and can land in local browser history
+            until it is cleared. If that matters in your environment, set
+            <code>WEBSH_TOKEN</code> yourself and paste it into the login form instead of using
+            the link.
+          </p>
+        </div>
+
+        <h2>Cross-site request forgery</h2>
+        <p>
+          Cookie-authenticated WebSockets need care: without a check, any page the user visits
+          could open a socket back to <code>localhost</code> and get a shell, because the browser
+          would attach the cookie for them.
+        </p>
+        <p>Two defences, deliberately overlapping:</p>
+        <ul>
+          <li>
+            <code>SameSite=Strict</code> on the session cookie, which stops the browser sending it
+            on cross-site requests.
+          </li>
+          <li>
+            An explicit <code>Origin</code> check on the upgrade <em>and</em> on every state-changing API call. Same-origin requests pass;
+            anything else must be listed in <code>--allowed-origin</code>. Requests with no
+            <code>Origin</code> header at all are allowed, since that means a non-browser client
+            and therefore no ambient cookie to abuse.
+          </li>
+        </ul>
+
+        <h2>Rate limiting</h2>
+        <p>
+          Ten failed sign-ins from one address within a minute locks that address out for the rest
+          of the window, correct token included. It is deliberately simple: the token is 192 bits
+          of randomness, so this exists to stop noise and log spam rather than to be the thing
+          standing between an attacker and your shell.
+        </p>
+
+        <h2>What the server does not do</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Not provided</th>
+                <th>What to do instead</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>TLS</td>
+                <td>
+                  Terminate it in front — Caddy, nginx, a cloud load balancer. Over plain HTTP the
+                  session cookie and every keystroke travel in clear text.
+                </td>
+              </tr>
+              <tr>
+                <td>Multiple users or accounts</td>
+                <td>
+                  There is one token and one shell identity. If you need per-user access, put an
+                  authenticating proxy in front and run separate instances.
+                </td>
+              </tr>
+              <tr>
+                <td>Sandboxing</td>
+                <td>
+                  The shell runs as the user that started the server, with that user's full
+                  environment. Run it as a restricted account, or inside a container, if that is
+                  not what you want.
+                </td>
+              </tr>
+              <tr>
+                <td>Audit logging of session contents</td>
+                <td>
+                  Connections and lifecycle events are logged; keystrokes and output are not.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Deployment checklist</h2>
+        <ul>
+          <li>Serve it over HTTPS, and set <code>WEBSH_SECURE_COOKIE=1</code> if your proxy does not send <code>X-Forwarded-Proto</code>.</li>
+          <li>Set <code>WEBSH_TOKEN</code> explicitly so it survives restarts and is not printed to a shared log.</li>
+          <li>Keep the bind address as tight as possible; prefer loopback plus a reverse proxy over binding <code>0.0.0.0</code>.</li>
+          <li>Run as a dedicated unprivileged user, never root.</li>
+          <li>Set <code>--allowed-origin</code> only if the UI is served from a different origin than the server.</li>
+          <li>Shorten <code>--session-ttl-minutes</code> from the 12-hour default if the machine is shared.</li>
+        </ul>
+
+        <h2>Response headers</h2>
+        <p>
+          Every response carries a strict Content-Security-Policy and the usual hardening headers.
+          A terminal needs no third-party anything, so the policy can be tight:
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Header</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>Content-Security-Policy</code></td>
+                <td>
+                  <code>default-src 'self'</code>, <code>object-src 'none'</code>,
+                  <code>frame-ancestors 'none'</code>. <code>style-src</code> allows
+                  <code>'unsafe-inline'</code> because xterm sets inline styles on the elements it
+                  renders; there is no way around that short of patching it.
+                </td>
+              </tr>
+              <tr>
+                <td><code>X-Frame-Options</code></td>
+                <td><code>DENY</code> — a terminal has no business in someone else's frame.</td>
+              </tr>
+              <tr>
+                <td><code>Referrer-Policy</code></td>
+                <td><code>no-referrer</code></td>
+              </tr>
+              <tr>
+                <td><code>Cross-Origin-Opener-Policy</code></td>
+                <td><code>same-origin</code></td>
+              </tr>
+              <tr>
+                <td><code>Cross-Origin-Resource-Policy</code></td>
+                <td><code>same-origin</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Reporting a vulnerability</h2>
+        <p>
+          Open a
+          <a href="https://github.com/s-yoshiki/node-websh/security/advisories/new">
+            private security advisory</a
+          >
+          rather than a public issue.
+        </p>
+
+        <footer class="page-footer">
+          <span>node-websh — MIT licensed</span>
+          <a href="https://github.com/s-yoshiki/node-websh">github.com/s-yoshiki/node-websh</a>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

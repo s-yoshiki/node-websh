@@ -1,0 +1,19 @@
+{
+  "name": "@node-websh/protocol",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Wire protocol and transport abstraction shared by the browser and the server",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./browser": "./src/browser.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@node-websh/tsconfig": "workspace:*",
+    "typescript": "^7.0.2"
+  }
+}

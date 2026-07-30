@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuration — node-websh</title>
+    <meta
+      name="description"
+      content="Every command-line flag and environment variable accepted by the node-websh server."
+    />
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="site">
+      <aside class="sidebar">
+        <a class="brand" href="index.html">node-websh <span>v0.2</span></a>
+        <nav>
+          <h2>Guide</h2>
+          <ul>
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="development.html">Development</a></li>
+            <li><a href="deployment.html">Deployment</a></li>
+          </ul>
+          <h2>Reference</h2>
+          <ul>
+            <li><a href="architecture.html">Architecture</a></li>
+            <li><a href="protocol.html">Wire protocol</a></li>
+            <li><a href="security.html">Security</a></li>
+            <li><a href="configuration.html" aria-current="page">Configuration</a></li>
+          </ul>
+          <h2>Project</h2>
+          <ul>
+            <li><a href="https://github.com/s-yoshiki/node-websh">GitHub</a></li>
+            <li><a href="https://github.com/s-yoshiki/majin">majin (Rust)</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="content" id="main">
+        <h1>Configuration</h1>
+        <p class="lede">
+          Every option is available as both a flag and an environment variable. Flags win.
+        </p>
+        <p>Run <code>node-websh --help</code> for the same list from the binary.</p>
+
+        <h2>Network</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Flag</th>
+                <th>Environment</th>
+                <th>Default</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--host</code></td>
+                <td><code>WEBSH_HOST</code></td>
+                <td><code>127.0.0.1</code></td>
+                <td>
+                  Loopback by default on purpose. Widening it should be deliberate — see
+                  <a href="security.html">Security</a>.
+                </td>
+              </tr>
+              <tr>
+                <td><code>--port</code>, <code>-p</code></td>
+                <td><code>WEBSH_PORT</code></td>
+                <td><code>8999</code></td>
+                <td>Use <code>0</code> to let the OS pick; the banner prints what it got.</td>
+              </tr>
+              <tr>
+                <td><code>--allowed-origin</code></td>
+                <td><code>WEBSH_ALLOWED_ORIGINS</code></td>
+                <td>—</td>
+                <td>
+                  Extra origins permitted to open a WebSocket. Same-origin always passes, so this
+                  is only for a UI served from elsewhere, such as the Vite dev server. Repeat the
+                  flag, or comma-separate the variable.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Authentication</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Flag</th>
+                <th>Environment</th>
+                <th>Default</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--token</code></td>
+                <td><code>WEBSH_TOKEN</code></td>
+                <td>generated</td>
+                <td>
+                  A fresh 192-bit token is generated and printed when unset, which means it
+                  changes on every restart. Set it explicitly for anything long-lived.
+                </td>
+              </tr>
+              <tr>
+                <td><code>--session-ttl-minutes</code></td>
+                <td><code>WEBSH_SESSION_TTL_MINUTES</code></td>
+                <td><code>720</code></td>
+                <td>How long a session stays valid. 12 hours by default.</td>
+              </tr>
+              <tr>
+                <td><code>--secure-cookie</code></td>
+                <td><code>WEBSH_SECURE_COOKIE</code></td>
+                <td><code>false</code></td>
+                <td>
+                  Forces <code>Secure</code> on the session cookie. Detected automatically from
+                  <code>X-Forwarded-Proto: https</code>; set it when your proxy omits that header.
+                </td>
+              </tr>
+              <tr>
+                <td><code>--insecure-no-auth</code></td>
+                <td><code>WEBSH_INSECURE_NO_AUTH</code></td>
+                <td><code>false</code></td>
+                <td>
+                  Disables authentication entirely. Only defensible when something else in front
+                  is doing it.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="danger">
+          <strong>--insecure-no-auth</strong>
+          <p>
+            With this on, anyone who can open a socket to the port has a shell as the user running
+            the server. The startup banner says so in as many words.
+          </p>
+        </div>
+
+        <h2>Sessions and the shell</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Flag</th>
+                <th>Environment</th>
+                <th>Default</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>--shell</code></td>
+                <td><code>WEBSH_SHELL</code></td>
+                <td><code>$SHELL</code></td>
+                <td><code>%COMSPEC%</code> on Windows, <code>/bin/bash</code> as a last resort.</td>
+              </tr>
+              <tr>
+                <td><code>--cwd</code></td>
+                <td><code>WEBSH_CWD</code></td>
+                <td>home directory</td>
+                <td>Working directory for new sessions.</td>
+              </tr>
+              <tr>
+                <td><code>--max-sessions</code></td>
+                <td><code>WEBSH_MAX_SESSIONS</code></td>
+                <td><code>8</code></td>
+                <td>
+                  Concurrent terminals. Further connections are closed with <code>4002</code>.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Spawned shells inherit the server's environment plus
+          <code>TERM=xterm-256color</code> and <code>COLORTERM=truecolor</code>. Without those,
+          programs assume a dumb terminal and colour and cursor addressing stop working.
+        </p>
+
+        <h2>Logging</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Environment</th>
+                <th>Default</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>WEBSH_LOG</code></td>
+                <td><code>websh_server=info,tower_http=warn</code></td>
+                <td>
+                  <a href="https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html"
+                    >EnvFilter</a
+                  >
+                  syntax. Terminal contents are never logged; only connections and lifecycle
+                  events are.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Examples</h2>
+        <p>Local use, nothing to configure:</p>
+        <pre><code>node dist/main.js</code></pre>
+
+        <p>Behind a TLS-terminating proxy, with a fixed token:</p>
+        <pre><code>WEBSH_TOKEN="$(openssl rand -hex 24)" \
+WEBSH_SECURE_COOKIE=1 \
+node dist/main.js --host 127.0.0.1 --port 8999</code></pre>
+
+        <p>Backing the Vite dev server:</p>
+        <pre><code>node dist/main.js --allowed-origin http://localhost:5173</code></pre>
+
+        <p>A single restricted session in a container:</p>
+        <pre><code>node dist/main.js --host 0.0.0.0 --shell /bin/bash --max-sessions 1 \
+             --session-ttl-minutes 60</code></pre>
+
+        <footer class="page-footer">
+          <span>node-websh — MIT licensed</span>
+          <a href="https://github.com/s-yoshiki/node-websh">github.com/s-yoshiki/node-websh</a>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

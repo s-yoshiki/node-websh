@@ -1,0 +1,34 @@
+{
+  "name": "@node-websh/server",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Hono server exposing a PTY over WebSocket, with the built frontend served alongside",
+  "type": "module",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "tsx watch src/main.ts --allowed-origin http://localhost:5173",
+    "build": "node scripts/build.mjs",
+    "start": "node dist/main.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test 'src/**/*.test.ts'",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.12",
+    "@hono/node-ws": "^1.3.1",
+    "@node-websh/protocol": "workspace:*",
+    "hono": "^4.12.32",
+    "node-pty": "^1.1.0",
+    "ws": "^8.21.1"
+  },
+  "devDependencies": {
+    "@node-websh/tsconfig": "workspace:*",
+    "@node-websh/web": "workspace:*",
+    "@types/node": "^26.1.2",
+    "@types/ws": "^8.18.1",
+    "esbuild": "^0.27.0",
+    "tsx": "^4.20.6",
+    "typescript": "^7.0.2"
+  }
+}

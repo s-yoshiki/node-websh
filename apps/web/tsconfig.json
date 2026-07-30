@@ -1,0 +1,4 @@
+{
+  "extends": "@node-websh/tsconfig/react-app.json",
+  "include": ["src", "vite.config.ts"]
+}

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "node-websh react application",
+  "extends": "./react-lib.json",
+  "compilerOptions": {
+    // `node` is here for the Vite config file, which runs outside the browser.
+    "types": ["vite/client", "node"]
+  }
+}

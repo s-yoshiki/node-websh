@@ -1,0 +1,238 @@
+:root {
+  --bg: #11141a;
+  --bg-raised: #171b23;
+  --border: #262c38;
+  --fg: #d7dae0;
+  --fg-muted: #8b93a7;
+  --accent: #7aa2f7;
+  --danger: #f7768e;
+  --ok: #9ece6a;
+  --warn: #e0af68;
+  --radius: 10px;
+  --font-ui: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Shell ---------------------------------------------------------------- */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app__terminal {
+  flex: 1;
+  min-height: 0;
+  padding: 8px 10px;
+}
+
+.splash {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--fg-muted);
+  font-size: 0.95rem;
+  padding: 24px;
+  text-align: center;
+}
+
+.splash--error {
+  color: var(--danger);
+}
+
+/* --- Status bar ----------------------------------------------------------- */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  height: 34px;
+  flex: 0 0 auto;
+  background: var(--bg-raised);
+  border-bottom: 1px solid var(--border);
+  font-size: 0.78rem;
+  color: var(--fg-muted);
+}
+
+.statusbar__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--fg-muted);
+  flex: 0 0 auto;
+}
+
+.statusbar__dot--open {
+  background: var(--ok);
+}
+
+.statusbar__dot--connecting,
+.statusbar__dot--reconnecting {
+  background: var(--warn);
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+.statusbar__dot--error,
+.statusbar__dot--closed {
+  background: var(--danger);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .statusbar__dot--connecting,
+  .statusbar__dot--reconnecting {
+    animation: none;
+  }
+}
+
+.statusbar__status {
+  color: var(--fg);
+}
+
+.statusbar__shell,
+.statusbar__detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusbar__shell {
+  font-family: ui-monospace, monospace;
+}
+
+.statusbar__spacer {
+  flex: 1;
+}
+
+.statusbar__button {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg-muted);
+  cursor: pointer;
+  font: inherit;
+  padding: 3px 10px;
+}
+
+.statusbar__button:hover {
+  border-color: var(--accent);
+  color: var(--fg);
+}
+
+/* --- Login ---------------------------------------------------------------- */
+
+.login {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 24px;
+}
+
+.login__card {
+  background: var(--bg-raised);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  width: min(100%, 380px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.login__title {
+  margin: 0;
+  font-size: 1.15rem;
+  letter-spacing: 0.01em;
+}
+
+.login__hint {
+  margin: 0 0 6px;
+  color: var(--fg-muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.login__hint code {
+  font-family: ui-monospace, monospace;
+  background: #0d1017;
+  border-radius: 4px;
+  padding: 1px 5px;
+}
+
+.login__label {
+  font-size: 0.78rem;
+  color: var(--fg-muted);
+}
+
+.login__input {
+  background: #0d1017;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  font-family: ui-monospace, monospace;
+  font-size: 0.9rem;
+  padding: 9px 11px;
+  width: 100%;
+}
+
+.login__input:focus-visible {
+  border-color: var(--accent);
+  outline: 2px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  outline-offset: 1px;
+}
+
+.login__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.login__button {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  color: #0d1017;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  margin-top: 4px;
+  padding: 9px 14px;
+}
+
+.login__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* --- xterm ---------------------------------------------------------------- */
+
+.xterm .xterm-viewport {
+  scrollbar-width: thin;
+}

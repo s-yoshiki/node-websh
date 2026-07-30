@@ -1,0 +1,29 @@
+{
+  "name": "@node-websh/web",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MIT",
+  "description": "Browser frontend, embedded into the websh-server binary at build time",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@node-websh/protocol": "workspace:*",
+    "@node-websh/terminal-ui": "workspace:*",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@node-websh/tsconfig": "workspace:*",
+    "@types/node": "^26.1.2",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^6.0.5",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.0"
+  }
+}

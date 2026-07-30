@@ -1,0 +1,4 @@
+{
+  "extends": "@node-websh/tsconfig/react-lib.json",
+  "include": ["src"]
+}

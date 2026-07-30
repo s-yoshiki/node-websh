@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Architecture — node-websh</title>
+    <meta
+      name="description"
+      content="How node-websh is laid out: a pnpm monorepo, one shared protocol package, and a terminal component that only knows about a transport interface."
+    />
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="site">
+      <aside class="sidebar">
+        <a class="brand" href="index.html">node-websh <span>v0.2</span></a>
+        <nav>
+          <h2>Guide</h2>
+          <ul>
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="development.html">Development</a></li>
+            <li><a href="deployment.html">Deployment</a></li>
+          </ul>
+          <h2>Reference</h2>
+          <ul>
+            <li><a href="architecture.html" aria-current="page">Architecture</a></li>
+            <li><a href="protocol.html">Wire protocol</a></li>
+            <li><a href="security.html">Security</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+          <h2>Project</h2>
+          <ul>
+            <li><a href="https://github.com/s-yoshiki/node-websh">GitHub</a></li>
+            <li><a href="https://github.com/s-yoshiki/majin">majin (Rust)</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="content" id="main">
+        <h1>Architecture</h1>
+        <p class="lede">
+          One protocol declaration, one terminal component, and a transport seam between them.
+        </p>
+
+        <h2>The shape of it</h2>
+        <figure>
+          <svg viewBox="0 0 720 360" role="img" aria-labelledby="arch-title">
+            <title id="arch-title">
+              The browser renders xterm.js and talks to a Hono server over a WebSocket; the server
+              drives a PTY through node-pty.
+            </title>
+
+            <rect class="diagram-accent" x="180" y="16" width="360" height="58" rx="8" />
+            <text class="diagram-text" x="196" y="41">Browser</text>
+            <text class="diagram-muted" x="196" y="60">apps/web — React + xterm.js</text>
+
+            <path class="diagram-line" d="M360 74 L360 124" marker-end="url(#arrow)" />
+            <text class="diagram-muted" x="372" y="104">WebSocket /ws + session cookie</text>
+
+            <rect class="diagram-bg" x="180" y="124" width="360" height="58" rx="8" />
+            <text class="diagram-text" x="196" y="149">apps/server</text>
+            <text class="diagram-muted" x="196" y="168">Hono · auth · static frontend</text>
+
+            <path class="diagram-line" d="M360 182 L360 232" marker-end="url(#arrow)" />
+            <text class="diagram-muted" x="372" y="212">node-pty</text>
+
+            <rect class="diagram-accent" x="180" y="232" width="360" height="48" rx="8" />
+            <text class="diagram-text" x="196" y="261">Pseudo terminal</text>
+
+            <path class="diagram-line" d="M360 280 L360 316" marker-end="url(#arrow)" />
+
+            <rect class="diagram-bg" x="180" y="316" width="360" height="40" rx="8" />
+            <text class="diagram-text" x="196" y="341">Your login shell</text>
+
+            <defs>
+              <marker
+                id="arrow"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" class="diagram-line" fill="currentColor" />
+              </marker>
+            </defs>
+          </svg>
+          <figcaption>
+            One WebSocket, one PTY, one shell. The server also serves the built frontend, so a
+            deployment is a single process.
+          </figcaption>
+        </figure>
+
+        <h2>Repository layout</h2>
+        <pre><code>node-websh/
+├── apps/
+│   ├── server/            Hono + node-pty + WebSocket, serves the built frontend
+│   └── web/               React app built by Vite
+├── packages/
+│   ├── protocol/          Wire protocol, runtime guards, transport interface
+│   └── terminal-ui/       The xterm.js React component
+├── configs/
+│   ├── tsconfig/          Shared TypeScript configs
+│   └── biome/             Shared Biome config
+├── scripts/               Postinstall fix-ups and the end-to-end smoke test
+└── docs/                  This site</code></pre>
+
+        <h2>The transport seam</h2>
+        <p>
+          <code>TerminalView</code> in <code>packages/terminal-ui</code> is the entire terminal UI,
+          and it knows nothing about WebSockets. It takes a <code>TerminalTransport</code>:
+        </p>
+        <pre><code>interface TerminalTransport {
+  readonly state: TransportState;
+  connect(): void;
+  send(message: ClientMessage): void;
+  onMessage(listener: (message: ServerMessage) =&gt; void): Unsubscribe;
+  onStateChange(listener: (state: TransportState) =&gt; void): Unsubscribe;
+  dispose(): void;
+}</code></pre>
+        <p>
+          The web app injects <code>WebSocketTransport</code>. Anything else that can carry frames
+          — a local IPC channel, a test double — drops in without the component noticing, which is
+          how <a href="https://github.com/s-yoshiki/majin">majin</a> reuses the same design for a
+          desktop window.
+        </p>
+
+        <h2>One protocol, imported twice</h2>
+        <p>
+          <code>packages/protocol</code> declares every frame once. Both ends import it, so the two
+          views cannot drift apart.
+        </p>
+        <div class="note">
+          <strong>Why this exists</strong>
+          <p>
+            The previous version declared each half separately and got it wrong: the client sent a
+            <code>resizer</code> field, the server read <code>resize</code>, and window resizing
+            quietly did nothing for as long as that code lived.
+          </p>
+        </div>
+        <p>The package has two entry points, and the split is deliberate:</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Entry point</th>
+                <th>Holds</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>@node-websh/protocol</code></td>
+                <td>
+                  Types, runtime guards and the transport interface. Isomorphic — nothing here
+                  touches a browser global, so the server can typecheck against Node's lib.
+                </td>
+              </tr>
+              <tr>
+                <td><code>@node-websh/protocol/browser</code></td>
+                <td>
+                  <code>WebSocketTransport</code>, which needs <code>WebSocket</code> and
+                  <code>location</code>.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Driving a PTY</h2>
+        <p><code>apps/server/src/pty.ts</code> wraps <code>node-pty</code>. Three details matter:</p>
+        <ul>
+          <li>
+            <strong>Decoding.</strong> node-pty runs its own streaming UTF-8 decoder, so a
+            multi-byte character split across two reads arrives intact and handlers get strings.
+          </li>
+          <li>
+            <strong>Locale.</strong> When the parent process has no <code>LANG</code> or
+            <code>LC_*</code> — the normal state for a systemd unit or a CI runner — the child gets
+            a UTF-8 locale explicitly. Under <code>LC_CTYPE=C</code>, readline treats typed bytes
+            as 8-bit characters, so entering anything non-ASCII rings the bell and fires filename
+            completion instead of inserting the text.
+          </li>
+          <li>
+            <strong>Lifetime.</strong> The shell is killed when the socket closes, so a closed tab
+            never leaves an orphan behind.
+          </li>
+        </ul>
+
+        <h2>Build and orchestration</h2>
+        <p>
+          Turborepo runs the task graph. The one ordering constraint that matters is that
+          <code>apps/web</code> builds before <code>apps/server</code>, because the server bundle
+          copies the built frontend next to itself. That is expressed the way turbo understands it:
+          the server lists <code>@node-websh/web</code> as a devDependency.
+        </p>
+        <p>
+          The server is bundled with esbuild into a single ESM file, with
+          <code>node-pty</code> left external because a native addon cannot be bundled.
+        </p>
+
+        <footer class="page-footer">
+          <span>node-websh — MIT licensed</span>
+          <a href="https://github.com/s-yoshiki/node-websh">github.com/s-yoshiki/node-websh</a>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

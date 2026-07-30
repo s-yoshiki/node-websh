@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wire protocol — node-websh</title>
+    <meta
+      name="description"
+      content="Every frame node-websh sends over its WebSocket, and the HTTP endpoints around it."
+    />
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <div class="site">
+      <aside class="sidebar">
+        <a class="brand" href="index.html">node-websh <span>v0.2</span></a>
+        <nav>
+          <h2>Guide</h2>
+          <ul>
+            <li><a href="index.html">Overview</a></li>
+            <li><a href="development.html">Development</a></li>
+            <li><a href="deployment.html">Deployment</a></li>
+          </ul>
+          <h2>Reference</h2>
+          <ul>
+            <li><a href="architecture.html">Architecture</a></li>
+            <li><a href="protocol.html" aria-current="page">Wire protocol</a></li>
+            <li><a href="security.html">Security</a></li>
+            <li><a href="configuration.html">Configuration</a></li>
+          </ul>
+          <h2>Project</h2>
+          <ul>
+            <li><a href="https://github.com/s-yoshiki/node-websh">GitHub</a></li>
+            <li><a href="https://github.com/s-yoshiki/majin">majin (Rust)</a></li>
+          </ul>
+        </nav>
+      </aside>
+
+      <main class="content" id="main">
+        <h1>Wire protocol</h1>
+        <p class="lede">
+          JSON text frames over a WebSocket, tagged by a <code>type</code> field. Version 1.
+        </p>
+
+        <div class="note">
+          <strong>Declared once, imported twice</strong>
+          <p>
+            The types below live in <code>packages/protocol/src/messages.ts</code>, and both the
+            browser and the server import them. Changing a field name is a compile error on the
+            other side rather than a silent runtime mismatch.
+          </p>
+        </div>
+
+        <h2>Client to server</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Frame</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>{"type":"input","data":"ls\r"}</code></td>
+                <td>Keystrokes or pasted text, written straight to the PTY.</td>
+              </tr>
+              <tr>
+                <td><code>{"type":"resize","cols":120,"rows":40}</code></td>
+                <td>
+                  New viewport geometry. Resizing the PTY also raises
+                  <code>SIGWINCH</code> in the foreground process. Values are clamped to
+                  1–1000 on both axes.
+                </td>
+              </tr>
+              <tr>
+                <td><code>{"type":"ping","at":1712345678901}</code></td>
+                <td>Liveness probe. The server echoes <code>at</code> back in a <code>pong</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Server to client</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Frame</th>
+                <th>Meaning</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <code
+                    >{"type":"ready","protocolVersion":1,"sessionId":"…","shell":"/bin/zsh","cols":80,"rows":24}</code
+                  >
+                </td>
+                <td>Sent once, immediately after the shell is spawned.</td>
+              </tr>
+              <tr>
+                <td><code>{"type":"output","data":"…"}</code></td>
+                <td>Decoded PTY output, written verbatim into xterm.</td>
+              </tr>
+              <tr>
+                <td><code>{"type":"exit","exitCode":0}</code></td>
+                <td>The shell terminated. The socket closes right after.</td>
+              </tr>
+              <tr>
+                <td><code>{"type":"error","code":"…","message":"…"}</code></td>
+                <td>A failure worth showing the user. See the codes below.</td>
+              </tr>
+              <tr>
+                <td><code>{"type":"pong","at":1712345678901}</code></td>
+                <td>Reply to a <code>ping</code>.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Error codes</h3>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Cause</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>unauthorized</code></td>
+                <td>No valid session cookie, or the request origin was refused.</td>
+              </tr>
+              <tr>
+                <td><code>spawn_failed</code></td>
+                <td>The configured shell could not be started.</td>
+              </tr>
+              <tr>
+                <td><code>session_limit</code></td>
+                <td><code>--max-sessions</code> terminals are already open.</td>
+              </tr>
+              <tr>
+                <td><code>bad_message</code></td>
+                <td>A frame failed validation. Malformed frames are dropped, not fatal.</td>
+              </tr>
+              <tr>
+                <td><code>internal</code></td>
+                <td>Anything else.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Close codes</h2>
+        <p>
+          Browsers cannot read the HTTP status of a failed WebSocket handshake, so the server
+          always completes the upgrade and then closes with a code the client can act on.
+        </p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Client behaviour</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>1000</code></td>
+                <td>normal</td>
+                <td>Stop. Session ended cleanly.</td>
+              </tr>
+              <tr>
+                <td><code>4001</code></td>
+                <td>unauthorized</td>
+                <td>Return to the login screen. Reconnecting cannot help.</td>
+              </tr>
+              <tr>
+                <td><code>4002</code></td>
+                <td>sessionLimit</td>
+                <td>Show the limit; do not hammer the server.</td>
+              </tr>
+              <tr>
+                <td><code>4003</code></td>
+                <td>protocolError</td>
+                <td>Stop.</td>
+              </tr>
+              <tr>
+                <td><code>4004</code></td>
+                <td>shellExited</td>
+                <td>Stop. The shell is gone, not the connection.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Anything else is treated as a transient network failure and retried with exponential
+          backoff, capped at 8 attempts and 10 seconds between them.
+        </p>
+
+        <h2>HTTP endpoints</h2>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Endpoint</th>
+                <th>Returns</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>GET /api/info</code></td>
+                <td>
+                  <code>{ version, protocolVersion, authRequired }</code>. Public — the UI needs
+                  it before sign-in.
+                </td>
+              </tr>
+              <tr>
+                <td><code>GET /api/auth/session</code></td>
+                <td><code>{ authenticated, expiresAt }</code> for the current cookie.</td>
+              </tr>
+              <tr>
+                <td><code>POST /api/auth/session</code></td>
+                <td>
+                  Body <code>{ token }</code>. On success sets the session cookie and returns the
+                  same shape. <code>401</code> on a bad token, <code>429</code> when rate limited.
+                </td>
+              </tr>
+              <tr>
+                <td><code>DELETE /api/auth/session</code></td>
+                <td>Revokes the session server-side and clears the cookie.</td>
+              </tr>
+              <tr>
+                <td><code>GET /ws</code></td>
+                <td>WebSocket upgrade. One connection, one PTY.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Errors carry <code>{ error, message }</code>; <code>message</code> is safe to display.</p>
+
+        <h2>Validation</h2>
+        <p>
+          Frames off a socket are untrusted. Types vanish at runtime, so both ends run the guards
+          in <code>packages/protocol/src/codec.ts</code> before a frame reaches a PTY or a
+          terminal. A malformed frame is dropped, never fatal — a buggy client should not be able
+          to kill someone else's shell.
+        </p>
+
+        <footer class="page-footer">
+          <span>node-websh — MIT licensed</span>
+          <a href="https://github.com/s-yoshiki/node-websh">github.com/s-yoshiki/node-websh</a>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>

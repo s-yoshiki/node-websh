@@ -1,0 +1,15 @@
+{
+  "name": "@node-websh/tsconfig",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "files": [
+    "*.json"
+  ],
+  "exports": {
+    "./base.json": "./base.json",
+    "./node.json": "./node.json",
+    "./react-lib.json": "./react-lib.json",
+    "./react-app.json": "./react-app.json"
+  }
+}

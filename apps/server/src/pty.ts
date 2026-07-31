@@ -4,7 +4,9 @@
 
 import { homedir } from 'node:os';
 import { clampSize, type TerminalSize } from '@node-websh/protocol';
-import * as nodePty from 'node-pty';
+import { loadNodePty } from './node-pty-loader.ts';
+
+const nodePty = loadNodePty();
 
 export interface PtyOptions {
   shell?: string | null;

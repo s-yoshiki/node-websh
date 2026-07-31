@@ -7,19 +7,22 @@
  * tests cannot: cookie handling, the origin check, the WebSocket close codes,
  * and whether the built frontend is actually being served.
  *
- *   node scripts/smoke-test.mjs [--entry path] [--port 8991]
+ *   node scripts/smoke-test.mjs [--entry path] [--port 8991] [--sea]
  */
 
 import { spawn } from 'node:child_process';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 const args = process.argv.slice(2);
+const SEA = args.includes('--sea');
 const argValue = (name, fallback) => {
   const index = args.indexOf(`--${name}`);
   return index === -1 ? fallback : args[index + 1];
 };
 
-const ENTRY = argValue('entry', 'apps/server/dist/main.js');
+const SEA_ENTRY =
+  process.platform === 'win32' ? 'apps/server/dist/node-websh.exe' : 'apps/server/dist/node-websh';
+const ENTRY = argValue('entry', SEA ? SEA_ENTRY : 'apps/server/dist/main.js');
 const PORT = Number(argValue('port', '8991'));
 const TOKEN = 'smoke-test-token-not-a-secret';
 const SHELL = process.platform === 'win32' ? undefined : '/bin/sh';
@@ -69,14 +72,18 @@ async function waitForServer(deadlineMs = 20_000) {
   return false;
 }
 
-const server = spawn(process.execPath, [ENTRY, '--port', String(PORT)], {
-  env: {
-    ...process.env,
-    WEBSH_TOKEN: TOKEN,
-    ...(SHELL ? { WEBSH_SHELL: SHELL } : {}),
+const server = spawn(
+  SEA ? ENTRY : process.execPath,
+  SEA ? ['--port', String(PORT)] : [ENTRY, '--port', String(PORT)],
+  {
+    env: {
+      ...process.env,
+      WEBSH_TOKEN: TOKEN,
+      ...(SHELL ? { WEBSH_SHELL: SHELL } : {}),
+    },
+    stdio: ['ignore', 'pipe', 'pipe'],
   },
-  stdio: ['ignore', 'pipe', 'pipe'],
-});
+);
 server.stderr.on('data', (chunk) => process.stderr.write(chunk));
 
 let exitCode = 1;

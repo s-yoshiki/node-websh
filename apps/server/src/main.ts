@@ -4,7 +4,7 @@
 
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { dirname, resolve } from 'node:path';
+import { dirname, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { serve } from '@hono/node-server';
 import { serveStatic } from '@hono/node-server/serve-static';
@@ -178,10 +178,10 @@ if (staticDir) {
   // Anything not matched is a client-side route, so hand back the SPA shell.
   // It is read once rather than per request; the file cannot change under a
   // running server.
-  const indexHtml = await readFile(resolve(staticDir, 'index.html'), 'utf8');
-  app.notFound((c) => {
+  const indexHtml = readFile(resolve(staticDir, 'index.html'), 'utf8');
+  app.notFound(async (c) => {
     c.header('Cache-Control', 'no-cache');
-    return c.html(indexHtml);
+    return c.html(await indexHtml);
   });
 }
 
@@ -231,8 +231,8 @@ function findStaticDir(base: string): string | null {
 
 /** `serveStatic` resolves `root` relative to the working directory. */
 function relativeToCwd(dir: string): string {
-  const relative = resolve(dir).slice(process.cwd().length + 1);
-  return relative.length > 0 ? relative : '.';
+  const path = relative(process.cwd(), resolve(dir));
+  return path.length > 0 ? path : '.';
 }
 
 function printBanner(address: string, port: number): void {

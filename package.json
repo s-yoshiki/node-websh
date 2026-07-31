@@ -16,6 +16,7 @@
     "postinstall": "node scripts/postinstall.mjs",
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "build:sea": "pnpm build && node apps/server/scripts/build-sea.mjs",
     "start": "node apps/server/dist/main.js",
     "typecheck": "turbo run typecheck",
     "lint": "biome check .",
@@ -23,11 +24,13 @@
     "format": "biome format --write .",
     "test": "turbo run test",
     "test:e2e": "node scripts/smoke-test.mjs",
+    "test:e2e:sea": "node scripts/smoke-test.mjs --sea",
     "clean": "turbo run clean"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.6",
     "@node-websh/biome-config": "workspace:*",
+    "postject": "1.0.0-alpha.6",
     "turbo": "^2.10.7",
     "typescript": "^7.0.2"
   }

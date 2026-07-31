@@ -4,6 +4,8 @@
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-0969da)](https://s-yoshiki.github.io/node-websh/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+English | [日本語](README.ja.md)
+
 A real interactive shell on a pseudo terminal, rendered in the browser with
 [xterm.js](https://xtermjs.org/). TypeScript end to end:
 [Hono](https://hono.dev/) and
@@ -124,6 +126,44 @@ WEBSH_TOKEN="replace-with-a-long-random-token" npm start
 The target host must use the same operating system and CPU architecture as the
 installed `node-pty` binary. Running `npm install --omit=dev` on the target, as
 shown above, ensures the correct native package is selected.
+
+### Single executable application
+
+An experimental Node.js
+[Single Executable Application](https://nodejs.org/api/single-executable-applications.html)
+build packages the server, frontend, Node.js runtime, and platform-specific
+`node-pty` files into one executable:
+
+```bash
+pnpm build:sea
+./apps/server/dist/node-websh
+```
+
+On Windows the output is `apps/server/dist/node-websh.exe`. The executable is
+specific to the operating system and CPU architecture of the Node.js binary
+used to build it. Node.js does not need to be installed on the target host.
+
+SEA generation requires an official Node.js 22.20 or newer binary. Node.js
+25.5 and newer use the built-in `--build-sea` command; earlier supported
+versions automatically use `postject`. Homebrew disables SEA because its Node
+formula uses a shared `libnode`, so point the build at a Node.js binary from
+[nodejs.org](https://nodejs.org/en/download), a version manager, or another
+official distribution:
+
+```bash
+NODE_SEA_EXECUTABLE=/path/to/official/node pnpm build:sea
+```
+
+`node-pty` contains native code that the operating system cannot load directly
+from the executable. At startup, the SEA extracts its embedded frontend and
+native runtime files into a private temporary directory and removes the
+directory on normal exit.
+
+Verify the generated executable with:
+
+```bash
+pnpm test:e2e:sea
+```
 
 ## Configuration
 
@@ -272,6 +312,7 @@ For a deeper walkthrough, see
 | --- | --- |
 | `pnpm dev` | Starts the server on `:8999` and Vite on `:5173`. |
 | `pnpm build` | Builds the frontend, then bundles the server and frontend together. |
+| `pnpm build:sea` | Builds a platform-specific single executable application. |
 | `pnpm start` | Runs the built server. |
 | `pnpm lint` | Checks the workspace with Biome. |
 | `pnpm lint:fix` | Applies safe Biome fixes. |
@@ -279,6 +320,7 @@ For a deeper walkthrough, see
 | `pnpm typecheck` | Runs `tsc --noEmit` in each package. |
 | `pnpm test` | Runs unit tests, including tests against a real PTY. |
 | `pnpm test:e2e` | Tests auth, cookies, origins, WebSockets, UTF-8, resizing, and a real shell against the production build. |
+| `pnpm test:e2e:sea` | Runs the same end-to-end checks against the SEA executable. |
 | `pnpm clean` | Removes generated build output. |
 
 Before submitting a change, run:

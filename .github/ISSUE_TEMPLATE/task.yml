@@ -1,0 +1,19 @@
+name: Task / 作業
+description: Track a task or improvement request / 作業や改善提案を登録します
+title: "[Task]: "
+projects: ["s-yoshiki/1"]
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary / 概要
+      description: Describe the task or improvement request. / 作業内容や改善提案を説明してください。
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details / 詳細
+      description: Add context, expected behavior, or acceptance criteria. / 背景、期待する動作、完了条件などを記載してください。
+    validations:
+      required: false

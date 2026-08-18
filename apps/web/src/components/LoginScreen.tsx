@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react';
+import { type FormEvent, useId, useState } from 'react';
 
 export interface LoginScreenProps {
   onSubmit: (token: string) => Promise<void>;
@@ -7,6 +7,7 @@ export interface LoginScreenProps {
 }
 
 export function LoginScreen({ onSubmit, initialError }: LoginScreenProps) {
+  const tokenInputId = useId();
   const [token, setToken] = useState('');
   const [error, setError] = useState<string | null>(initialError ?? null);
   const [busy, setBusy] = useState(false);
@@ -35,11 +36,11 @@ export function LoginScreen({ onSubmit, initialError }: LoginScreenProps) {
           Paste the access token printed by <code>websh-server</code> when it started.
         </p>
 
-        <label className="login__label" htmlFor="token">
+        <label className="login__label" htmlFor={tokenInputId}>
           Access token
         </label>
         <input
-          id="token"
+          id={tokenInputId}
           className="login__input"
           type="password"
           value={token}

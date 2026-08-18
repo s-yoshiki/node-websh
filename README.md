@@ -317,6 +317,7 @@ For a deeper walkthrough, see
 | `pnpm lint` | Checks the workspace with Biome. |
 | `pnpm lint:fix` | Applies safe Biome fixes. |
 | `pnpm format` | Formats the workspace with Biome. |
+| `pnpm format:check` | Checks formatting without changing files. |
 | `pnpm typecheck` | Runs `tsc --noEmit` in each package. |
 | `pnpm test` | Runs unit tests, including tests against a real PTY. |
 | `pnpm test:e2e` | Tests auth, cookies, origins, WebSockets, UTF-8, resizing, and a real shell against the production build. |
@@ -327,6 +328,7 @@ Before submitting a change, run:
 
 ```bash
 pnpm lint
+pnpm format:check
 pnpm typecheck
 pnpm test
 pnpm build

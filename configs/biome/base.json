@@ -24,8 +24,24 @@
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "drizzle": "none",
+      "next": "none",
+      "playwright": "none",
+      "project": "none",
+      "qwik": "none",
+      "react": "all",
+      "reactNative": "none",
+      "solid": "none",
+      "svelte": "none",
+      "tailwind": "none",
+      "test": "all",
+      "turborepo": "all",
+      "types": "all",
+      "vue": "none"
+    },
     "rules": {
-      "recommended": true,
+      "preset": "all",
       "correctness": {
         "noUnusedImports": "error",
         "noUnusedVariables": "error"

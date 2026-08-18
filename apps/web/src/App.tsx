@@ -21,7 +21,6 @@ export function App() {
   // A new transport per sign-in: `TerminalView` keys its whole lifecycle off
   // this identity, so a fresh one gives a genuinely fresh terminal.
   const [sessionKey, setSessionKey] = useState(0);
-  // biome-ignore lint/correctness/useExhaustiveDependencies: sessionKey is not read inside; bumping it is how a new sign-in forces a brand new transport.
   const transport = useMemo(
     () => (phase.kind === 'signed-in' ? new WebSocketTransport() : null),
     [phase.kind, sessionKey],

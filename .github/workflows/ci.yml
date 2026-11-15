@@ -28,6 +28,9 @@ jobs:
       - name: Verify
         run: pnpm verify
 
+      - name: Build server for the end-to-end smoke test
+        run: pnpm build
+
       - name: End-to-end smoke test
         run: pnpm run test:e2e
 

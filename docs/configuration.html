@@ -76,9 +76,9 @@
                 <td><code>WEBSH_ALLOWED_ORIGINS</code></td>
                 <td>—</td>
                 <td>
-                  Extra origins permitted to open a WebSocket. Same-origin always passes, so this
-                  is only for a UI served from elsewhere, such as the Vite dev server. Repeat the
-                  flag, or comma-separate the variable.
+                  Extra origins permitted to open a WebSocket. Same-origin always passes, so this is
+                  only for a UI served from elsewhere, such as the Vite dev server. Repeat the flag,
+                  or comma-separate the variable.
                 </td>
               </tr>
             </tbody>
@@ -102,8 +102,8 @@
                 <td><code>WEBSH_TOKEN</code></td>
                 <td>generated</td>
                 <td>
-                  A fresh 192-bit token is generated and printed when unset, which means it
-                  changes on every restart. Set it explicitly for anything long-lived.
+                  A fresh 192-bit token is generated and printed when unset, which means it changes
+                  on every restart. Set it explicitly for anything long-lived.
                 </td>
               </tr>
               <tr>
@@ -126,8 +126,8 @@
                 <td><code>WEBSH_INSECURE_NO_AUTH</code></td>
                 <td><code>false</code></td>
                 <td>
-                  Disables authentication entirely. Only defensible when something else in front
-                  is doing it.
+                  Disables authentication entirely. Only defensible when something else in front is
+                  doing it.
                 </td>
               </tr>
             </tbody>
@@ -198,11 +198,12 @@
                 <td><code>WEBSH_LOG</code></td>
                 <td><code>websh_server=info,tower_http=warn</code></td>
                 <td>
-                  <a href="https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html"
+                  <a
+                    href="https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html"
                     >EnvFilter</a
                   >
-                  syntax. Terminal contents are never logged; only connections and lifecycle
-                  events are.
+                  syntax. Terminal contents are never logged; only connections and lifecycle events
+                  are.
                 </td>
               </tr>
             </tbody>

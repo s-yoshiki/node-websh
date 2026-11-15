@@ -44,7 +44,7 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font-family: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  font-family: system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
   font-size: 16px;
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
@@ -199,7 +199,7 @@ hr {
   color: var(--fg);
 }
 
-.sidebar li a[aria-current="page"] {
+.sidebar li a[aria-current='page'] {
   background: var(--accent-soft);
   color: var(--accent);
   font-weight: 600;

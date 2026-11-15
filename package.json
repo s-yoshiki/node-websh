@@ -8,10 +8,7 @@
     "type": "git",
     "url": "https://github.com/s-yoshiki/node-websh.git"
   },
-  "packageManager": "pnpm@11.15.0",
-  "engines": {
-    "node": ">=20"
-  },
+  "type": "module",
   "scripts": {
     "postinstall": "node scripts/postinstall.mjs",
     "dev": "turbo run dev",
@@ -19,20 +16,26 @@
     "build:sea": "pnpm build && node apps/server/scripts/build-sea.mjs",
     "start": "node apps/server/dist/main.js",
     "typecheck": "turbo run typecheck",
-    "lint": "biome check .",
-    "lint:fix": "biome check --write .",
-    "format": "biome format --write .",
-    "format:check": "biome format .",
+    "lint": "oxlint .",
+    "lint:fix": "oxlint --fix .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check .",
     "test": "turbo run test",
     "test:e2e": "node scripts/smoke-test.mjs",
     "test:e2e:sea": "node scripts/smoke-test.mjs --sea",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "check": "pnpm lint && pnpm format:check && pnpm typecheck",
+    "verify": "pnpm check && pnpm test && pnpm build"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.6",
-    "@node-websh/biome-config": "workspace:*",
-    "postject": "1.0.0-alpha.6",
-    "turbo": "^2.10.7",
-    "typescript": "^7.0.2"
-  }
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "postject": "catalog:",
+    "turbo": "catalog:",
+    "typescript": "catalog:"
+  },
+  "engines": {
+    "node": ">=26.0.0 <27.0.0"
+  },
+  "packageManager": "pnpm@12.20.0"
 }

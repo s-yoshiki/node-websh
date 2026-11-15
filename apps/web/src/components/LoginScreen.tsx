@@ -48,7 +48,7 @@ export function LoginScreen({ onSubmit, initialError }: LoginScreenProps) {
           autoComplete="off"
           autoCorrect="off"
           spellCheck={false}
-          // biome-ignore lint/a11y/noAutofocus: the token field is the only control on this screen.
+          // oxlint / oxfmt-ignore lint/a11y/noAutofocus: the token field is the only control on this screen.
           autoFocus
           disabled={busy}
         />

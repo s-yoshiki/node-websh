@@ -103,7 +103,7 @@
 │   └── terminal-ui/       The xterm.js React component
 ├── configs/
 │   ├── tsconfig/          Shared TypeScript configs
-│   └── biome/             Shared Biome config
+│   └── oxlint/ and oxfmt/             Shared Oxlint and Oxfmt config
 ├── scripts/               Postinstall fix-ups and the end-to-end smoke test
 └── docs/                  This site</code></pre>
 
@@ -121,9 +121,9 @@
   dispose(): void;
 }</code></pre>
         <p>
-          The web app injects <code>WebSocketTransport</code>. Anything else that can carry frames
-          — a local IPC channel, a test double — drops in without the component noticing, which is
-          how <a href="https://github.com/s-yoshiki/majin">majin</a> reuses the same design for a
+          The web app injects <code>WebSocketTransport</code>. Anything else that can carry frames —
+          a local IPC channel, a test double — drops in without the component noticing, which is how
+          <a href="https://github.com/s-yoshiki/majin">majin</a> reuses the same design for a
           desktop window.
         </p>
 
@@ -169,7 +169,9 @@
         </div>
 
         <h2>Driving a PTY</h2>
-        <p><code>apps/server/src/pty.ts</code> wraps <code>node-pty</code>. Three details matter:</p>
+        <p>
+          <code>apps/server/src/pty.ts</code> wraps <code>node-pty</code>. Three details matter:
+        </p>
         <ul>
           <li>
             <strong>Decoding.</strong> node-pty runs its own streaming UTF-8 decoder, so a
@@ -178,8 +180,8 @@
           <li>
             <strong>Locale.</strong> When the parent process has no <code>LANG</code> or
             <code>LC_*</code> — the normal state for a systemd unit or a CI runner — the child gets
-            a UTF-8 locale explicitly. Under <code>LC_CTYPE=C</code>, readline treats typed bytes
-            as 8-bit characters, so entering anything non-ASCII rings the bell and fires filename
+            a UTF-8 locale explicitly. Under <code>LC_CTYPE=C</code>, readline treats typed bytes as
+            8-bit characters, so entering anything non-ASCII rings the bell and fires filename
             completion instead of inserting the text.
           </li>
           <li>

@@ -1,7 +1,13 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "ui": "stream",
-  "globalDependencies": ["configs/tsconfig/*.json", "configs/biome/base.json"],
+  "globalDependencies": [
+    "configs/tsconfig/*.json",
+    "configs/oxlint/base.ts",
+    "configs/oxfmt/base.ts",
+    "oxlint.config.ts",
+    "oxfmt.config.ts"
+  ],
   "globalEnv": ["NODE_ENV"],
   "tasks": {
     "build": {

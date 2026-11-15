@@ -50,7 +50,7 @@ export function TerminalView({
   const handlers = useRef({ onTransportState, onReady, onExit });
   handlers.current = { onTransportState, onReady, onExit };
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: theme, fontFamily and fontSize are read once to seed the terminal. Adding them here would recreate it — wiping the scrollback and killing the shell — so the effect below pushes changes onto the live instance instead.
+  // oxlint / oxfmt-ignore lint/correctness/useExhaustiveDependencies: theme, fontFamily and fontSize are read once to seed the terminal. Adding them here would recreate it — wiping the scrollback and killing the shell — so the effect below pushes changes onto the live instance instead.
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;

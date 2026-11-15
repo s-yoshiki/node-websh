@@ -46,15 +46,15 @@ behind a private network. It is intentionally small and single-user.
 
 ## Requirements
 
-| Requirement | Version / notes |
-| --- | --- |
-| Node.js | 20 or newer |
-| pnpm | 11 or newer |
-| Browser | A current browser with WebSocket support |
+| Requirement  | Version / notes                                                                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node.js      | 20 or newer                                                                                                                                       |
+| pnpm         | 11 or newer                                                                                                                                       |
+| Browser      | A current browser with WebSocket support                                                                                                          |
 | Native tools | Usually not needed; `node-pty` provides prebuilt binaries for common platforms. Python and a C++ toolchain are needed if it must compile locally. |
 
 The CI workflow runs the full lint, typecheck, unit, build, and end-to-end suite
-on Node.js 22 and Ubuntu.
+on Node.js 26 and Ubuntu.
 
 ## Quick start
 
@@ -143,7 +143,7 @@ On Windows the output is `apps/server/dist/node-websh.exe`. The executable is
 specific to the operating system and CPU architecture of the Node.js binary
 used to build it. Node.js does not need to be installed on the target host.
 
-SEA generation requires an official Node.js 22.20 or newer binary. Node.js
+SEA generation requires an official Node.js 26.20 or newer binary. Node.js
 25.5 and newer use the built-in `--build-sea` command; earlier supported
 versions automatically use `postject`. Homebrew disables SEA because its Node
 formula uses a shared `libnode`, so point the build at a Node.js binary from
@@ -171,19 +171,19 @@ Every server option is available as a command-line flag and a `WEBSH_*`
 environment variable. Flags take precedence over environment variables, which
 take precedence over defaults.
 
-| Flag | Environment variable | Default | Purpose |
-| --- | --- | --- | --- |
-| `--host <address>` | `WEBSH_HOST` | `127.0.0.1` | Address to bind. Keep this on loopback when using a reverse proxy. |
-| `-p, --port <number>` | `WEBSH_PORT` | `8999` | HTTP and WebSocket port. |
-| `--token <token>` | `WEBSH_TOKEN` | generated | Access token. Set it explicitly for a long-running deployment. |
-| `--shell <path>` | `WEBSH_SHELL` | `$SHELL` | Shell executable for new terminals. |
-| `--cwd <path>` | `WEBSH_CWD` | home directory | Initial working directory for new terminals. |
-| `--session-ttl-minutes <n>` | `WEBSH_SESSION_TTL_MINUTES` | `720` | Session lifetime in minutes. |
-| `--max-sessions <n>` | `WEBSH_MAX_SESSIONS` | `8` | Maximum number of concurrent terminals. |
-| `--allowed-origin <origin>` | `WEBSH_ALLOWED_ORIGINS` | none | Extra browser origin allowed to use the API and WebSocket. Repeat the flag or comma-separate the variable. |
-| `--secure-cookie` | `WEBSH_SECURE_COOKIE=1` | off | Force the `Secure` session-cookie attribute. HTTPS is also detected from `X-Forwarded-Proto`. |
-| `--insecure-no-auth` | `WEBSH_INSECURE_NO_AUTH=1` | off | Disable built-in authentication. See the warning below. |
-| `--static-dir <path>` | `WEBSH_STATIC_DIR` | auto-detected | Directory containing the built frontend. |
+| Flag                        | Environment variable        | Default        | Purpose                                                                                                    |
+| --------------------------- | --------------------------- | -------------- | ---------------------------------------------------------------------------------------------------------- |
+| `--host <address>`          | `WEBSH_HOST`                | `127.0.0.1`    | Address to bind. Keep this on loopback when using a reverse proxy.                                         |
+| `-p, --port <number>`       | `WEBSH_PORT`                | `8999`         | HTTP and WebSocket port.                                                                                   |
+| `--token <token>`           | `WEBSH_TOKEN`               | generated      | Access token. Set it explicitly for a long-running deployment.                                             |
+| `--shell <path>`            | `WEBSH_SHELL`               | `$SHELL`       | Shell executable for new terminals.                                                                        |
+| `--cwd <path>`              | `WEBSH_CWD`                 | home directory | Initial working directory for new terminals.                                                               |
+| `--session-ttl-minutes <n>` | `WEBSH_SESSION_TTL_MINUTES` | `720`          | Session lifetime in minutes.                                                                               |
+| `--max-sessions <n>`        | `WEBSH_MAX_SESSIONS`        | `8`            | Maximum number of concurrent terminals.                                                                    |
+| `--allowed-origin <origin>` | `WEBSH_ALLOWED_ORIGINS`     | none           | Extra browser origin allowed to use the API and WebSocket. Repeat the flag or comma-separate the variable. |
+| `--secure-cookie`           | `WEBSH_SECURE_COOKIE=1`     | off            | Force the `Secure` session-cookie attribute. HTTPS is also detected from `X-Forwarded-Proto`.              |
+| `--insecure-no-auth`        | `WEBSH_INSECURE_NO_AUTH=1`  | off            | Disable built-in authentication. See the warning below.                                                    |
+| `--static-dir <path>`       | `WEBSH_STATIC_DIR`          | auto-detected  | Directory containing the built frontend.                                                                   |
 
 After building, print the same list in the terminal with:
 
@@ -292,7 +292,7 @@ packages/
 └── terminal-ui/  Reusable xterm.js React component
 configs/
 ├── tsconfig/     Shared TypeScript configuration
-└── biome/        Shared Biome configuration
+└── Oxlint / Oxfmt/        Shared Oxlint / Oxfmt configuration
 docs/             Static documentation site published with GitHub Pages
 ```
 
@@ -308,21 +308,21 @@ For a deeper walkthrough, see
 
 ## Development
 
-| Command | What it does |
-| --- | --- |
-| `pnpm dev` | Starts the server on `:8999` and Vite on `:5173`. |
-| `pnpm build` | Builds the frontend, then bundles the server and frontend together. |
-| `pnpm build:sea` | Builds a platform-specific single executable application. |
-| `pnpm start` | Runs the built server. |
-| `pnpm lint` | Checks the workspace with Biome. |
-| `pnpm lint:fix` | Applies safe Biome fixes. |
-| `pnpm format` | Formats the workspace with Biome. |
-| `pnpm format:check` | Checks formatting without changing files. |
-| `pnpm typecheck` | Runs `tsc --noEmit` in each package. |
-| `pnpm test` | Runs unit tests, including tests against a real PTY. |
-| `pnpm test:e2e` | Tests auth, cookies, origins, WebSockets, UTF-8, resizing, and a real shell against the production build. |
-| `pnpm test:e2e:sea` | Runs the same end-to-end checks against the SEA executable. |
-| `pnpm clean` | Removes generated build output. |
+| Command             | What it does                                                                                              |
+| ------------------- | --------------------------------------------------------------------------------------------------------- |
+| `pnpm dev`          | Starts the server on `:8999` and Vite on `:5173`.                                                         |
+| `pnpm build`        | Builds the frontend, then bundles the server and frontend together.                                       |
+| `pnpm build:sea`    | Builds a platform-specific single executable application.                                                 |
+| `pnpm start`        | Runs the built server.                                                                                    |
+| `pnpm lint`         | Checks the workspace with Oxlint / Oxfmt.                                                                 |
+| `pnpm lint:fix`     | Applies safe Oxlint / Oxfmt fixes.                                                                        |
+| `pnpm format`       | Formats the workspace with Oxlint / Oxfmt.                                                                |
+| `pnpm format:check` | Checks formatting without changing files.                                                                 |
+| `pnpm typecheck`    | Runs `tsc --noEmit` in each package.                                                                      |
+| `pnpm test`         | Runs unit tests, including tests against a real PTY.                                                      |
+| `pnpm test:e2e`     | Tests auth, cookies, origins, WebSockets, UTF-8, resizing, and a real shell against the production build. |
+| `pnpm test:e2e:sea` | Runs the same end-to-end checks against the SEA executable.                                               |
+| `pnpm clean`        | Removes generated build output.                                                                           |
 
 Before submitting a change, run:
 
@@ -341,26 +341,26 @@ More detail is available in the
 
 ## Troubleshooting
 
-| Symptom | Likely cause / fix |
-| --- | --- |
-| The login works but the status stays at “Reconnecting…” | The reverse proxy is not forwarding the WebSocket upgrade, or its idle timeout is too short. |
-| You are immediately returned to the login screen | The proxy rewrote the `Host` header, the request origin is not allowed, or a `Secure` cookie was set over plain HTTP. |
-| Every terminal fails with `posix_spawnp failed` | The executable bit on node-pty's `spawn-helper` was lost. Re-run `pnpm install`, which runs `scripts/postinstall.mjs`. |
-| The page loads but no terminal appears | Build the frontend with `pnpm build`, or set `WEBSH_STATIC_DIR` to a directory containing `index.html`. |
-| The shell starts in the wrong directory | Set `WEBSH_CWD` or pass `--cwd`. |
-| A connection is refused while other terminals are open | Increase `WEBSH_MAX_SESSIONS`, or close an existing terminal. |
-| Development UI cannot reach the backend | Check that ports `5173` and `8999` are free and that `WEBSH_BACKEND` points to the Hono server if it is not using the default address. |
+| Symptom                                                 | Likely cause / fix                                                                                                                     |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| The login works but the status stays at “Reconnecting…” | The reverse proxy is not forwarding the WebSocket upgrade, or its idle timeout is too short.                                           |
+| You are immediately returned to the login screen        | The proxy rewrote the `Host` header, the request origin is not allowed, or a `Secure` cookie was set over plain HTTP.                  |
+| Every terminal fails with `posix_spawnp failed`         | The executable bit on node-pty's `spawn-helper` was lost. Re-run `pnpm install`, which runs `scripts/postinstall.mjs`.                 |
+| The page loads but no terminal appears                  | Build the frontend with `pnpm build`, or set `WEBSH_STATIC_DIR` to a directory containing `index.html`.                                |
+| The shell starts in the wrong directory                 | Set `WEBSH_CWD` or pass `--cwd`.                                                                                                       |
+| A connection is refused while other terminals are open  | Increase `WEBSH_MAX_SESSIONS`, or close an existing terminal.                                                                          |
+| Development UI cannot reach the backend                 | Check that ports `5173` and `8999` are free and that `WEBSH_BACKEND` points to the Hono server if it is not using the default address. |
 
 ## Documentation
 
-| Page | Contents |
-| --- | --- |
-| [Overview](https://s-yoshiki.github.io/node-websh/) | Project overview and first run |
-| [Development](https://s-yoshiki.github.io/node-websh/development.html) | Monorepo setup and the development loop |
-| [Deployment](https://s-yoshiki.github.io/node-websh/deployment.html) | Build output, systemd, reverse proxies, and Docker |
-| [Architecture](https://s-yoshiki.github.io/node-websh/architecture.html) | Components and data flow |
-| [Wire protocol](https://s-yoshiki.github.io/node-websh/protocol.html) | Frames, close codes, and HTTP endpoints |
-| [Security](https://s-yoshiki.github.io/node-websh/security.html) | Authentication model, hardening, and limitations |
+| Page                                                                       | Contents                                             |
+| -------------------------------------------------------------------------- | ---------------------------------------------------- |
+| [Overview](https://s-yoshiki.github.io/node-websh/)                        | Project overview and first run                       |
+| [Development](https://s-yoshiki.github.io/node-websh/development.html)     | Monorepo setup and the development loop              |
+| [Deployment](https://s-yoshiki.github.io/node-websh/deployment.html)       | Build output, systemd, reverse proxies, and Docker   |
+| [Architecture](https://s-yoshiki.github.io/node-websh/architecture.html)   | Components and data flow                             |
+| [Wire protocol](https://s-yoshiki.github.io/node-websh/protocol.html)      | Frames, close codes, and HTTP endpoints              |
+| [Security](https://s-yoshiki.github.io/node-websh/security.html)           | Authentication model, hardening, and limitations     |
 | [Configuration](https://s-yoshiki.github.io/node-websh/configuration.html) | Flags, environment variables, defaults, and examples |
 
 ## Related project
@@ -376,7 +376,7 @@ core, a self-contained binary, and a Tauri desktop application.
 [React](https://react.dev/) ·
 [Vite](https://vite.dev/) ·
 [Turborepo](https://turborepo.com/) ·
-[Biome](https://biomejs.dev/)
+[Oxlint / Oxfmt](https://Oxlint / Oxfmtjs.dev/)
 
 ## License
 

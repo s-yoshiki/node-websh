@@ -1,7 +1,7 @@
 name: Task / 作業
 description: Track a task or improvement request / 作業や改善提案を登録します
-title: "[Task]: "
-projects: ["s-yoshiki/1"]
+title: '[Task]: '
+projects: ['s-yoshiki/1']
 body:
   - type: textarea
     id: summary

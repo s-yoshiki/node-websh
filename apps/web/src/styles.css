@@ -9,7 +9,7 @@
   --ok: #9ece6a;
   --warn: #e0af68;
   --radius: 10px;
-  --font-ui: system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --font-ui: system-ui, -apple-system, 'Segoe UI', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
 
   color-scheme: dark;
 }

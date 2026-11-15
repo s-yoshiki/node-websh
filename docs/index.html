@@ -40,8 +40,8 @@
       <main class="content" id="main">
         <h1>node-websh</h1>
         <p class="lede">
-          A real login shell on a pseudo terminal, rendered in the browser with xterm.js.
-          TypeScript end to end: Hono and node-pty on the server, React on the front.
+          A real login shell on a pseudo terminal, rendered in the browser with xterm.js. TypeScript
+          end to end: Hono and node-pty on the server, React on the front.
         </p>
 
         <div class="danger">
@@ -67,8 +67,8 @@ cd node-websh
 pnpm install
 pnpm dev</code></pre>
         <p>
-          Open <strong>http://localhost:5173</strong>. The server prints an access token on
-          startup, along with a link that signs you in without copying anything by hand.
+          Open <strong>http://localhost:5173</strong>. The server prints an access token on startup,
+          along with a link that signs you in without copying anything by hand.
         </p>
         <pre><code>  node-websh 0.2.0 — terminal over the web
 
@@ -90,17 +90,17 @@ pnpm start</code></pre>
 
         <h2>Why the rewrite</h2>
         <p>
-          The original version was an Express server, a bare xterm.js page and two shell scripts.
-          It worked, but the two halves of the protocol were written independently — the browser
-          sent <code>{ resizer: [...] }</code> while the server read <code>msg.resize</code>, so
-          resizing silently did nothing and nothing caught it.
+          The original version was an Express server, a bare xterm.js page and two shell scripts. It
+          worked, but the two halves of the protocol were written independently — the browser sent
+          <code>{ resizer: [...] }</code> while the server read <code>msg.resize</code>, so resizing
+          silently did nothing and nothing caught it.
         </p>
         <p>
           Now the protocol is declared once in <code>packages/protocol</code> and imported by both
-          ends, so a rename on one side is a compile error on the other. The rest follows from
-          that: a pnpm and Turborepo monorepo, a React frontend sharing one terminal component,
-          Biome for formatting and linting, and a security model built around a token, an
-          in-memory session and an explicit origin check.
+          ends, so a rename on one side is a compile error on the other. The rest follows from that:
+          a pnpm and Turborepo monorepo, a React frontend sharing one terminal component, Oxlint for
+          linting and Oxfmt for formatting, and a security model built around a token, an in-memory
+          session and an explicit origin check.
         </p>
 
         <h2>Requirements</h2>
@@ -115,12 +115,12 @@ pnpm start</code></pre>
             <tbody>
               <tr>
                 <td>Run or build it</td>
-                <td>Node.js 20+ and pnpm 11+</td>
+                <td>Node.js 26+ and pnpm 12+</td>
               </tr>
               <tr>
                 <td>Run a built bundle elsewhere</td>
                 <td>
-                  Node.js 20+ and <code>npm install --omit=dev</code> for the native PTY addon,
+                  Node.js 26+ and <code>npm install --omit=dev</code> for the native PTY addon,
                   which ships prebuilt for common platforms
                 </td>
               </tr>

@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   check:
-    name: Lint, typecheck and test
+    name: Verify and smoke test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -25,17 +25,8 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Biome
-        run: pnpm run lint
-
-      - name: TypeScript
-        run: pnpm run typecheck
-
-      - name: Unit tests
-        run: pnpm run test
-
-      - name: Build
-        run: pnpm run build
+      - name: Verify
+        run: pnpm verify
 
       - name: End-to-end smoke test
         run: pnpm run test:e2e

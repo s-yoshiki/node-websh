@@ -39,7 +39,7 @@
 
       <main class="content" id="main">
         <h1>Development</h1>
-        <p class="lede">A pnpm workspace driven by Turborepo. Node.js 20+ and pnpm 11+.</p>
+        <p class="lede">A pnpm workspace driven by Turborepo. Node.js 26+ and pnpm 12+.</p>
 
         <h2>Setup</h2>
         <pre><code>git clone https://github.com/s-yoshiki/node-websh.git
@@ -52,9 +52,9 @@ pnpm install</code></pre>
         <div class="note">
           <strong>About the postinstall step</strong>
           <p>
-            node-pty <code>exec</code>s a small <code>spawn-helper</code> binary to start the
-            shell, and the executable bit on it does not survive extraction in every package
-            manager and CI setup. When it is missing, every spawn fails with a bare
+            node-pty <code>exec</code>s a small <code>spawn-helper</code> binary to start the shell,
+            and the executable bit on it does not survive extraction in every package manager and CI
+            setup. When it is missing, every spawn fails with a bare
             <code>posix_spawnp failed</code> and no hint that the cause is a file mode.
             <code>scripts/postinstall.mjs</code> restores it.
           </p>
@@ -94,11 +94,15 @@ pnpm start</code></pre>
             <tbody>
               <tr>
                 <td><code>pnpm lint</code></td>
-                <td>Biome, formatting and lint rules together</td>
+                <td>Runs Oxlint over the workspace</td>
               </tr>
               <tr>
                 <td><code>pnpm lint:fix</code></td>
-                <td>Applies what Biome can fix automatically</td>
+                <td>Applies safe Oxlint fixes</td>
+              </tr>
+              <tr>
+                <td><code>pnpm format:check</code></td>
+                <td>Checks formatting with Oxfmt</td>
               </tr>
               <tr>
                 <td><code>pnpm typecheck</code></td>
@@ -173,23 +177,23 @@ pnpm start</code></pre>
 
         <h2>Shared configuration</h2>
         <p>
-          TypeScript and Biome settings live in <code>configs/</code> as workspace packages rather
-          than being copied per app.
+          TypeScript, Oxlint, and Oxfmt settings live in <code>configs/</code> as workspace packages
+          rather than being copied per app.
         </p>
         <pre><code>configs/tsconfig/base.json        strict defaults, no DOM
 configs/tsconfig/node.json        + Node types
 configs/tsconfig/react-lib.json   + DOM and JSX
 configs/tsconfig/react-app.json   + Vite client types
-configs/biome/base.json           formatter and lint rules</code></pre>
+configs/oxlint/base.ts            lint rules
+configs/oxfmt/base.ts             formatter rules</code></pre>
         <p>A package opts in by extending it:</p>
         <pre><code>{ "extends": "@node-websh/tsconfig/react-app.json", "include": ["src"] }</code></pre>
 
         <div class="note">
           <strong>Two things to know</strong>
           <p>
-            The shared Biome config is <code>base.json</code>, not <code>biome.json</code>, on
-            purpose: Biome auto-discovers any file with the latter name and would treat the shared
-            one as a competing root configuration.
+            Oxlint and Oxfmt settings are shared from <code>configs/</code> through the root config
+            files.
           </p>
           <p>
             Relative imports carry explicit <code>.ts</code> extensions. That is what lets the Node

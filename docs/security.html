@@ -40,8 +40,8 @@
       <main class="content" id="main">
         <h1>Security</h1>
         <p class="lede">
-          This program hands out an interactive shell. Anyone who reaches it and authenticates
-          can do anything the account running it can do.
+          This program hands out an interactive shell. Anyone who reaches it and authenticates can
+          do anything the account running it can do.
         </p>
 
         <div class="danger">
@@ -66,8 +66,8 @@
             nor its length.
           </li>
           <li>
-            On success the server mints a 256-bit random session id, keeps it in memory, and
-            returns it as an <code>HttpOnly; SameSite=Strict</code> cookie.
+            On success the server mints a 256-bit random session id, keeps it in memory, and returns
+            it as an <code>HttpOnly; SameSite=Strict</code> cookie.
           </li>
           <li>
             The WebSocket upgrade is authenticated by that cookie, which the browser attaches
@@ -99,16 +99,16 @@
           <p>
             A fragment is still visible in the address bar and can land in local browser history
             until it is cleared. If that matters in your environment, set
-            <code>WEBSH_TOKEN</code> yourself and paste it into the login form instead of using
-            the link.
+            <code>WEBSH_TOKEN</code> yourself and paste it into the login form instead of using the
+            link.
           </p>
         </div>
 
         <h2>Cross-site request forgery</h2>
         <p>
-          Cookie-authenticated WebSockets need care: without a check, any page the user visits
-          could open a socket back to <code>localhost</code> and get a shell, because the browser
-          would attach the cookie for them.
+          Cookie-authenticated WebSockets need care: without a check, any page the user visits could
+          open a socket back to <code>localhost</code> and get a shell, because the browser would
+          attach the cookie for them.
         </p>
         <p>Two defences, deliberately overlapping:</p>
         <ul>
@@ -117,19 +117,19 @@
             on cross-site requests.
           </li>
           <li>
-            An explicit <code>Origin</code> check on the upgrade <em>and</em> on every state-changing API call. Same-origin requests pass;
-            anything else must be listed in <code>--allowed-origin</code>. Requests with no
-            <code>Origin</code> header at all are allowed, since that means a non-browser client
-            and therefore no ambient cookie to abuse.
+            An explicit <code>Origin</code> check on the upgrade <em>and</em> on every
+            state-changing API call. Same-origin requests pass; anything else must be listed in
+            <code>--allowed-origin</code>. Requests with no <code>Origin</code> header at all are
+            allowed, since that means a non-browser client and therefore no ambient cookie to abuse.
           </li>
         </ul>
 
         <h2>Rate limiting</h2>
         <p>
           Ten failed sign-ins from one address within a minute locks that address out for the rest
-          of the window, correct token included. It is deliberately simple: the token is 192 bits
-          of randomness, so this exists to stop noise and log spam rather than to be the thing
-          standing between an attacker and your shell.
+          of the window, correct token included. It is deliberately simple: the token is 192 bits of
+          randomness, so this exists to stop noise and log spam rather than to be the thing standing
+          between an attacker and your shell.
         </p>
 
         <h2>What the server does not do</h2>
@@ -160,15 +160,13 @@
                 <td>Sandboxing</td>
                 <td>
                   The shell runs as the user that started the server, with that user's full
-                  environment. Run it as a restricted account, or inside a container, if that is
-                  not what you want.
+                  environment. Run it as a restricted account, or inside a container, if that is not
+                  what you want.
                 </td>
               </tr>
               <tr>
                 <td>Audit logging of session contents</td>
-                <td>
-                  Connections and lifecycle events are logged; keystrokes and output are not.
-                </td>
+                <td>Connections and lifecycle events are logged; keystrokes and output are not.</td>
               </tr>
             </tbody>
           </table>
@@ -176,18 +174,33 @@
 
         <h2>Deployment checklist</h2>
         <ul>
-          <li>Serve it over HTTPS, and set <code>WEBSH_SECURE_COOKIE=1</code> if your proxy does not send <code>X-Forwarded-Proto</code>.</li>
-          <li>Set <code>WEBSH_TOKEN</code> explicitly so it survives restarts and is not printed to a shared log.</li>
-          <li>Keep the bind address as tight as possible; prefer loopback plus a reverse proxy over binding <code>0.0.0.0</code>.</li>
+          <li>
+            Serve it over HTTPS, and set <code>WEBSH_SECURE_COOKIE=1</code> if your proxy does not
+            send <code>X-Forwarded-Proto</code>.
+          </li>
+          <li>
+            Set <code>WEBSH_TOKEN</code> explicitly so it survives restarts and is not printed to a
+            shared log.
+          </li>
+          <li>
+            Keep the bind address as tight as possible; prefer loopback plus a reverse proxy over
+            binding <code>0.0.0.0</code>.
+          </li>
           <li>Run as a dedicated unprivileged user, never root.</li>
-          <li>Set <code>--allowed-origin</code> only if the UI is served from a different origin than the server.</li>
-          <li>Shorten <code>--session-ttl-minutes</code> from the 12-hour default if the machine is shared.</li>
+          <li>
+            Set <code>--allowed-origin</code> only if the UI is served from a different origin than
+            the server.
+          </li>
+          <li>
+            Shorten <code>--session-ttl-minutes</code> from the 12-hour default if the machine is
+            shared.
+          </li>
         </ul>
 
         <h2>Response headers</h2>
         <p>
-          Every response carries a strict Content-Security-Policy and the usual hardening headers.
-          A terminal needs no third-party anything, so the policy can be tight:
+          Every response carries a strict Content-Security-Policy and the usual hardening headers. A
+          terminal needs no third-party anything, so the policy can be tight:
         </p>
         <div class="table-wrap">
           <table>

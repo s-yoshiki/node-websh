@@ -45,11 +45,11 @@ node-websh は、自分が管理するマシンのシェルへ一時的にブラ
 
 ## 動作要件
 
-| 要件 | バージョン・補足 |
-| --- | --- |
-| Node.js | 20 以上 |
-| pnpm | 11 以上 |
-| ブラウザ | WebSocket に対応した現行ブラウザ |
+| 要件                   | バージョン・補足                                                                                                                                           |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Node.js                | 20 以上                                                                                                                                                    |
+| pnpm                   | 11 以上                                                                                                                                                    |
+| ブラウザ               | WebSocket に対応した現行ブラウザ                                                                                                                           |
 | ネイティブビルドツール | 通常は不要です。`node-pty` は一般的な環境向けのビルド済みバイナリを提供しています。ローカルでコンパイルする場合は Python と C++ ツールチェーンが必要です。 |
 
 CI では Node.js 22 と Ubuntu を使用し、lint、型チェック、ユニットテスト、
@@ -169,19 +169,19 @@ pnpm test:e2e:sea
 両方で指定できます。優先順位は、コマンドラインフラグ、環境変数、
 デフォルト値の順です。
 
-| フラグ | 環境変数 | デフォルト | 用途 |
-| --- | --- | --- | --- |
-| `--host <address>` | `WEBSH_HOST` | `127.0.0.1` | バインドするアドレス。リバースプロキシを使う場合はループバックのままにしてください。 |
-| `-p, --port <number>` | `WEBSH_PORT` | `8999` | HTTP／WebSocket ポート。 |
-| `--token <token>` | `WEBSH_TOKEN` | 自動生成 | アクセストークン。常時運用する場合は明示的に設定してください。 |
-| `--shell <path>` | `WEBSH_SHELL` | `$SHELL` | 新しいターミナルで実行するシェル。 |
-| `--cwd <path>` | `WEBSH_CWD` | ホームディレクトリ | 新しいターミナルの初期作業ディレクトリ。 |
-| `--session-ttl-minutes <n>` | `WEBSH_SESSION_TTL_MINUTES` | `720` | セッションの有効期間（分）。 |
-| `--max-sessions <n>` | `WEBSH_MAX_SESSIONS` | `8` | 同時に利用できるターミナルの最大数。 |
-| `--allowed-origin <origin>` | `WEBSH_ALLOWED_ORIGINS` | なし | API と WebSocket の利用を追加で許可するブラウザ Origin。フラグは繰り返し指定でき、環境変数はカンマ区切りで指定できます。 |
-| `--secure-cookie` | `WEBSH_SECURE_COOKIE=1` | オフ | セッション Cookie に `Secure` 属性を強制します。HTTPS は `X-Forwarded-Proto` からも自動検出します。 |
-| `--insecure-no-auth` | `WEBSH_INSECURE_NO_AUTH=1` | オフ | 組み込み認証を無効化します。下記の警告を確認してください。 |
-| `--static-dir <path>` | `WEBSH_STATIC_DIR` | 自動検出 | ビルド済みフロントエンドを格納したディレクトリ。 |
+| フラグ                      | 環境変数                    | デフォルト         | 用途                                                                                                                     |
+| --------------------------- | --------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------ |
+| `--host <address>`          | `WEBSH_HOST`                | `127.0.0.1`        | バインドするアドレス。リバースプロキシを使う場合はループバックのままにしてください。                                     |
+| `-p, --port <number>`       | `WEBSH_PORT`                | `8999`             | HTTP／WebSocket ポート。                                                                                                 |
+| `--token <token>`           | `WEBSH_TOKEN`               | 自動生成           | アクセストークン。常時運用する場合は明示的に設定してください。                                                           |
+| `--shell <path>`            | `WEBSH_SHELL`               | `$SHELL`           | 新しいターミナルで実行するシェル。                                                                                       |
+| `--cwd <path>`              | `WEBSH_CWD`                 | ホームディレクトリ | 新しいターミナルの初期作業ディレクトリ。                                                                                 |
+| `--session-ttl-minutes <n>` | `WEBSH_SESSION_TTL_MINUTES` | `720`              | セッションの有効期間（分）。                                                                                             |
+| `--max-sessions <n>`        | `WEBSH_MAX_SESSIONS`        | `8`                | 同時に利用できるターミナルの最大数。                                                                                     |
+| `--allowed-origin <origin>` | `WEBSH_ALLOWED_ORIGINS`     | なし               | API と WebSocket の利用を追加で許可するブラウザ Origin。フラグは繰り返し指定でき、環境変数はカンマ区切りで指定できます。 |
+| `--secure-cookie`           | `WEBSH_SECURE_COOKIE=1`     | オフ               | セッション Cookie に `Secure` 属性を強制します。HTTPS は `X-Forwarded-Proto` からも自動検出します。                      |
+| `--insecure-no-auth`        | `WEBSH_INSECURE_NO_AUTH=1`  | オフ               | 組み込み認証を無効化します。下記の警告を確認してください。                                                               |
+| `--static-dir <path>`       | `WEBSH_STATIC_DIR`          | 自動検出           | ビルド済みフロントエンドを格納したディレクトリ。                                                                         |
 
 ビルド後、同じ一覧をターミナルで確認できます。
 
@@ -290,7 +290,8 @@ packages/
 └── terminal-ui/  再利用可能な xterm.js React コンポーネント
 configs/
 ├── tsconfig/     共通 TypeScript 設定
-└── biome/        共通 Biome 設定
+├── oxlint/     共通 Oxlint 設定
+└── oxfmt/      共通 Oxfmt 設定
 docs/             GitHub Pages で公開する静的ドキュメントサイト
 ```
 
@@ -307,20 +308,20 @@ docs/             GitHub Pages で公開する静的ドキュメントサイト
 
 ## 開発
 
-| コマンド | 内容 |
-| --- | --- |
-| `pnpm dev` | サーバーを `:8999`、Vite を `:5173` で起動します。 |
-| `pnpm build` | フロントエンドをビルドし、サーバーとまとめてバンドルします。 |
-| `pnpm build:sea` | プラットフォーム固有の単一実行ファイルを生成します。 |
-| `pnpm start` | ビルド済みサーバーを起動します。 |
-| `pnpm lint` | Biome でワークスペースを検査します。 |
-| `pnpm lint:fix` | Biome の安全な修正を適用します。 |
-| `pnpm format` | Biome でワークスペースをフォーマットします。 |
-| `pnpm typecheck` | 各パッケージで `tsc --noEmit` を実行します。 |
-| `pnpm test` | 実際の PTY を使うテストを含むユニットテストを実行します。 |
-| `pnpm test:e2e` | 本番ビルドに対して、認証、Cookie、Origin、WebSocket、UTF-8、リサイズ、実際のシェルをテストします。 |
-| `pnpm test:e2e:sea` | SEA 実行ファイルに対して同じ E2E テストを実行します。 |
-| `pnpm clean` | 生成されたビルド出力を削除します。 |
+| コマンド            | 内容                                                                                               |
+| ------------------- | -------------------------------------------------------------------------------------------------- |
+| `pnpm dev`          | サーバーを `:8999`、Vite を `:5173` で起動します。                                                 |
+| `pnpm build`        | フロントエンドをビルドし、サーバーとまとめてバンドルします。                                       |
+| `pnpm build:sea`    | プラットフォーム固有の単一実行ファイルを生成します。                                               |
+| `pnpm start`        | ビルド済みサーバーを起動します。                                                                   |
+| `pnpm lint`         | Oxlint でワークスペースを検査します。                                                              |
+| `pnpm lint:fix`     | Oxlint の安全な修正を適用します。                                                                  |
+| `pnpm format`       | Oxfmt でワークスペースをフォーマットします。                                                       |
+| `pnpm typecheck`    | 各パッケージで `tsc --noEmit` を実行します。                                                       |
+| `pnpm test`         | 実際の PTY を使うテストを含むユニットテストを実行します。                                          |
+| `pnpm test:e2e`     | 本番ビルドに対して、認証、Cookie、Origin、WebSocket、UTF-8、リサイズ、実際のシェルをテストします。 |
+| `pnpm test:e2e:sea` | SEA 実行ファイルに対して同じ E2E テストを実行します。                                              |
+| `pnpm clean`        | 生成されたビルド出力を削除します。                                                                 |
 
 変更を提出する前に、次のチェックを実行してください。
 
@@ -339,27 +340,27 @@ E2E テストは `apps/server/dist/` を使用するため、`pnpm build` の後
 
 ## トラブルシューティング
 
-| 症状 | 考えられる原因・対処 |
-| --- | --- |
-| ログインには成功するが、状態が「Reconnecting…」のままになる | リバースプロキシが WebSocket Upgrade を転送していないか、アイドルタイムアウトが短すぎます。 |
-| すぐにログイン画面へ戻される | プロキシが `Host` ヘッダーを書き換えている、リクエストの Origin が許可されていない、または HTTP 接続で `Secure` Cookie が設定されています。 |
-| すべてのターミナルで `posix_spawnp failed` が発生する | node-pty の `spawn-helper` から実行ビットが失われています。`scripts/postinstall.mjs` を実行する `pnpm install` を再実行してください。 |
-| ページは表示されるがターミナルが現れない | `pnpm build` でフロントエンドをビルドするか、`index.html` を含むディレクトリを `WEBSH_STATIC_DIR` に指定してください。 |
-| シェルが意図しないディレクトリで起動する | `WEBSH_CWD` または `--cwd` を設定してください。 |
-| 他のターミナルが開いていると接続を拒否される | `WEBSH_MAX_SESSIONS` を増やすか、既存のターミナルを閉じてください。 |
-| 開発用 UI からバックエンドへ接続できない | ポート `5173` と `8999` が空いているか確認してください。バックエンドがデフォルト以外のアドレスの場合は、`WEBSH_BACKEND` を Hono サーバーへ向けてください。 |
+| 症状                                                        | 考えられる原因・対処                                                                                                                                       |
+| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ログインには成功するが、状態が「Reconnecting…」のままになる | リバースプロキシが WebSocket Upgrade を転送していないか、アイドルタイムアウトが短すぎます。                                                                |
+| すぐにログイン画面へ戻される                                | プロキシが `Host` ヘッダーを書き換えている、リクエストの Origin が許可されていない、または HTTP 接続で `Secure` Cookie が設定されています。                |
+| すべてのターミナルで `posix_spawnp failed` が発生する       | node-pty の `spawn-helper` から実行ビットが失われています。`scripts/postinstall.mjs` を実行する `pnpm install` を再実行してください。                      |
+| ページは表示されるがターミナルが現れない                    | `pnpm build` でフロントエンドをビルドするか、`index.html` を含むディレクトリを `WEBSH_STATIC_DIR` に指定してください。                                     |
+| シェルが意図しないディレクトリで起動する                    | `WEBSH_CWD` または `--cwd` を設定してください。                                                                                                            |
+| 他のターミナルが開いていると接続を拒否される                | `WEBSH_MAX_SESSIONS` を増やすか、既存のターミナルを閉じてください。                                                                                        |
+| 開発用 UI からバックエンドへ接続できない                    | ポート `5173` と `8999` が空いているか確認してください。バックエンドがデフォルト以外のアドレスの場合は、`WEBSH_BACKEND` を Hono サーバーへ向けてください。 |
 
 ## ドキュメント
 
-| ページ | 内容 |
-| --- | --- |
-| [概要](https://s-yoshiki.github.io/node-websh/) | プロジェクト概要と初回起動 |
-| [開発](https://s-yoshiki.github.io/node-websh/development.html) | モノレポのセットアップと開発手順 |
-| [デプロイ](https://s-yoshiki.github.io/node-websh/deployment.html) | ビルド出力、systemd、リバースプロキシ、Docker |
-| [アーキテクチャ](https://s-yoshiki.github.io/node-websh/architecture.html) | コンポーネントとデータフロー |
+| ページ                                                                     | 内容                                          |
+| -------------------------------------------------------------------------- | --------------------------------------------- |
+| [概要](https://s-yoshiki.github.io/node-websh/)                            | プロジェクト概要と初回起動                    |
+| [開発](https://s-yoshiki.github.io/node-websh/development.html)            | モノレポのセットアップと開発手順              |
+| [デプロイ](https://s-yoshiki.github.io/node-websh/deployment.html)         | ビルド出力、systemd、リバースプロキシ、Docker |
+| [アーキテクチャ](https://s-yoshiki.github.io/node-websh/architecture.html) | コンポーネントとデータフロー                  |
 | [ワイヤープロトコル](https://s-yoshiki.github.io/node-websh/protocol.html) | フレーム、クローズコード、HTTP エンドポイント |
-| [セキュリティ](https://s-yoshiki.github.io/node-websh/security.html) | 認証モデル、ハードニング、制限事項 |
-| [設定](https://s-yoshiki.github.io/node-websh/configuration.html) | フラグ、環境変数、デフォルト値、設定例 |
+| [セキュリティ](https://s-yoshiki.github.io/node-websh/security.html)       | 認証モデル、ハードニング、制限事項            |
+| [設定](https://s-yoshiki.github.io/node-websh/configuration.html)          | フラグ、環境変数、デフォルト値、設定例        |
 
 ## 関連プロジェクト
 
@@ -375,7 +376,7 @@ E2E テストは `apps/server/dist/` を使用するため、`pnpm build` の後
 [React](https://react.dev/) ·
 [Vite](https://vite.dev/) ·
 [Turborepo](https://turborepo.com/) ·
-[Biome](https://biomejs.dev/)
+[Oxlint](https://oxc.rs/docs/guide/usage/linter.html) · [Oxfmt](https://oxc.rs/docs/guide/usage/formatter.html)
 
 ## ライセンス
 
